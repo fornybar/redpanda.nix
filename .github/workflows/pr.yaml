@@ -1,0 +1,12 @@
+name: PR check
+run-name: "[PR check] ${{ github.event.pull_request.title }}"
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  checks:
+    uses: nixbuild/nixbuild-action/.github/workflows/ci-workflow.yml@v19
+    secrets:
+      nixbuild_token: ${{ secrets.NIXBUILD_TOKEN }}
