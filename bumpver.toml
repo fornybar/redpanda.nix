@@ -1,0 +1,12 @@
+[bumpver]
+current_version = "v0.0.0"
+version_pattern = "vMAJOR.MINOR.PATCH"
+commit_message = "Bumpver {old_version} -> {new_version}"
+commit = true
+tag = true
+push = true
+
+[bumpver.file_patterns]
+"bumpver.toml" = [
+    'current_version = "{version}"',
+]

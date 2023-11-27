@@ -1,2 +1,5 @@
-# redpanda.nix
-Configure, deploy and run Redpadan in NixOS. 
+# Redpanda.nix
+
+A Nix flake for Redpanda.
+
+Build, configure, run and administrate Redpanda with NixOS.
