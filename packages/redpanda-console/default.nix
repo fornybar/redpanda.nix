@@ -1,6 +1,6 @@
 { lib, stdenv, fetchzip }:
 stdenv.mkDerivation rec {
-  pname = "redpandaconsole";
+  pname = "redpanda-console";
   version = "2.2.3";
 
   src = fetchzip {

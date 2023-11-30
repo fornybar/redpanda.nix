@@ -18,11 +18,11 @@
     in
     {
       overlays = {
-        redpandabin = final: prev: {
-          redpandabin = final.callPackage ./packages/redpandabin.nix { };
+        redpanda = final: prev: {
+          redpanda = final.callPackage ./packages/redpanda { };
         };
-        redpandaconsole = final: prev: {
-          redpandaconsole = final.callPackage ./packages/redpandaconsole.nix { };
+        redpanda-console = final: prev: {
+          redpanda-console = final.callPackage ./packages/redpanda-console { };
         };
       };
 
@@ -30,20 +30,20 @@
         redpanda = { pkgs, ... }: {
           imports = [ ./modules/redpanda.nix ];
           # FIXME: once we have a functional redpanda-server in nixpkgs, this can be removed
-          services.redpanda.packages.server = pkgs.callPackage ./packages/redpandabin.nix { };
+          services.redpanda.packages.server = pkgs.callPackage ./packages/redpanda { };
         };
         redpanda-console = { pkgs, ... }: {
           imports = [ ./modules/redpanda-console.nix ];
           # FIXME: once we have a redpanda-console in nixpkgs, this can be removed
-          services.redpanda-console.package = pkgs.callPackage ./packages/redpandaconsole.nix { };
+          services.redpanda-console.package = pkgs.callPackage ./packages/redpanda-console { };
         };
         redpanda-acl = import ./modules/redpanda-acl.nix;
       };
 
-      packages.${system} = { inherit (pkgs) redpandabin redpandaconsole; };
+      packages.${system} = { inherit (pkgs) redpanda redpanda-console; };
 
       checks.${system} = {
-        inherit (pkgs) redpandabin redpandaconsole;
+        inherit (pkgs) redpanda redpanda-console;
         pre-commit-check = pre-commit-hooks.lib.${system}.run {
           src = ./.;
           hooks.nixpkgs-fmt.enable = true;

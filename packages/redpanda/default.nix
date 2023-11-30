@@ -9,7 +9,7 @@ let
 
 in
 stdenv.mkDerivation rec {
-  pname = "redpandabin";
+  pname = "redpanda-bin";
   version = "23.1.2";
 
   src = fetchzip {
@@ -38,6 +38,8 @@ stdenv.mkDerivation rec {
   meta = with lib; {
     # TODO: Fill out meta
     platforms = platforms.linux;
+    # XXX: should probably be "rpk" but that would be surprising for users
+    mainProgram = "redpanda";
   };
 
 }
