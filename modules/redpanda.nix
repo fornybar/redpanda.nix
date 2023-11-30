@@ -315,6 +315,7 @@ in
 
           ${lib.optionalString cfg.autoRestart ''
               # get node id of current broker
+              # TODO: crash loudly when we cannot reliably find it.
               node_id=$(${rpkCmd} cluster metadata | awk '$2~/^'"$(hostname)"'$/ { print $1 }')
               # strip possible trailing *
               node_id=''${node_id%\*}
