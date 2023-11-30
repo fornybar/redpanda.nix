@@ -333,8 +333,11 @@ in
               done
               ${rpkCmd} cluster health --exit-when-healthy
               systemctl restart redpanda.service
+              # TODO: Wait for the node to actually join the cluster
+              sleep 2
               ${rpkCmd} cluster health --exit-when-healthy
               ${rpkCmd} cluster maintenance disable $node_id
+              echo "Finished redpanda restart (node id $node_id)"
           ''}
         fi
       ''; # Do we need to include disks to tune also (--disks flag)?
