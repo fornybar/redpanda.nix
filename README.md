@@ -1,4 +1,4 @@
-# Redpanda.nix
+# Redpanda in NixOS
 
 A Nix flake for Redpanda.
 
