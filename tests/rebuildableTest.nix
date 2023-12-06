@@ -1,9 +1,9 @@
 pkgs: test:
 let
-  inherit (pkgs.lib) mapAttrsToList concatStringsSep genAttrs;
+  inherit (pkgs.lib) mapAttrsToList concatStringsSep genAttrs mkIf;
   inherit (builtins) attrNames;
 
-  interactiveConfig = {
+  interactiveConfig = ({ config, ... }: {
     # so we can run `nix shell nixpkgs#foo` on the machines
     nix.extraOptions = ''
       extra-experimental-features = nix-command flakes
@@ -18,7 +18,15 @@ let
         UsePAM = "no";
       };
     };
-  };
+
+    virtualisation = mkIf (config.networking.hostName == "jumphost") {
+      forwardPorts = [{
+        from = "host";
+        host.port = 2222;
+        guest.port = 22;
+      }];
+    };
+  });
 
   sshConfig = pkgs.writeText "ssh-config" ''
     Host *
