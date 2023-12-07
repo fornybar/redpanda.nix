@@ -1,9 +1,9 @@
 pkgs: test:
 let
-  inherit (pkgs.lib) mapAttrsToList concatStringsSep genAttrs;
+  inherit (pkgs.lib) mapAttrsToList concatStringsSep genAttrs mkIf;
   inherit (builtins) attrNames;
 
-  interactiveConfig = {
+  interactiveConfig = ({ config, ... }: {
     # so we can run `nix shell nixpkgs#foo` on the machines
     nix.extraOptions = ''
       extra-experimental-features = nix-command flakes
@@ -18,7 +18,15 @@ let
         UsePAM = "no";
       };
     };
-  };
+
+    virtualisation = mkIf (config.networking.hostName == "jumphost") {
+      forwardPorts = [{
+        from = "host";
+        host.port = 2222;
+        guest.port = 22;
+      }];
+    };
+  });
 
   sshConfig = pkgs.writeText "ssh-config" ''
     Host *
@@ -42,9 +50,9 @@ let
     # create an association array from machine names to the path to their
     # configuration in the nix store
     declare -A configPaths=(${
-      concatStringsSep " " 
-        (mapAttrsToList 
-          (n: v: ''["${n}"]="${v.system.build.toplevel}"'') 
+      concatStringsSep " "
+        (mapAttrsToList
+          (n: v: ''["${n}"]="${v.system.build.toplevel}"'')
           rebuildableTest.driverInteractive.nodes)
     })
 
@@ -65,7 +73,7 @@ let
       # taken from nixos-rebuild (we only want to do the activate part)
        cmd=(
           "systemd-run"
-          "-E" "LOCALE_ARCHIVE" 
+          "-E" "LOCALE_ARCHIVE"
           "--collect"
           "--no-ask-password"
           "--pty"
@@ -78,7 +86,7 @@ let
           "test"
       )
 
-      
+
       if ! ssh -F ${sshConfig} $machine "''${cmd[@]}"; then
           echo "warning: error(s) occurred while switching to the new configuration"
           exit 1
