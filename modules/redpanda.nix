@@ -46,6 +46,18 @@ let
           options = mkAddressOption "0.0.0.0" 9092;
         });
       };
+      # kafka_enable_authorization = mkOption {
+      #   type = types.bool;
+      #   default = true;
+      # };
+      # auto_create_topics_enabled = mkOption {
+      #   type = types.bool;
+      #   default = true;
+      # };
+      # superusers = mkOption {
+      #   type = types.nullOr (types.listOf types.str);
+      #   default = [ "admin" ];
+      # };
     };
   };
 
@@ -125,7 +137,7 @@ in
     autoRestart = mkOption {
       type = bool;
       description = ''
-        Restart local redpanda process if 
+        Restart local redpanda process if
         1. the redpanda config, binary, etc change
         2. the cluster config needs a restart
 
