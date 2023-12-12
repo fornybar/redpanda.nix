@@ -46,7 +46,7 @@ let
   # one should first start up the interactive test driver, then start the
   # machines, then update the config, and then redeploy with the `rebuildScript`
   # associated with the new config.
-  rebuildScript = pkgs.writeShellScript "rebuild-test.sh" ''
+  rebuildScript = pkgs.writeShellScriptBin "rebuild" ''
     # create an association array from machine names to the path to their
     # configuration in the nix store
     declare -A configPaths=(${
@@ -107,30 +107,43 @@ let
     fi
   '';
 
-  # NOTE: This is awkward because we're using attrsets and // for something that
-  # should really use a module system. Alas, there's no multi-machine modules in
-  # nixos. We really just want to add "interactiveConfig" to all modules.
-  rebuildableTest = pkgs.nixosTest (test // {
-    interactive = (test.interactive or { }) // {
-      # no need to // with test.interactive.nodes here, since we are iterating
-      # over all of them, and adding back in the config via `imports`
-      nodes = genAttrs
-        (
-          attrNames test.nodes or { } ++
-            attrNames test.interactive.nodes or { } ++
-            [ "jumphost" ]
-        )
-        (n: {
-          imports = [
-            (test.interactive.${n} or { })
-            interactiveConfig
-          ];
-        });
+  # NOTE: This is awkward because NixOS does not expose the module interface
+  # that is used to build tests. When we upstream this, we can build it into the
+  # system more naturally (and expose more of the interface to end users while
+  # we're at it)
+  rebuildableTest =
+    let
+      preOverride = pkgs.nixosTest (test // {
+        interactive = (test.interactive or { }) // {
+          # no need to // with test.interactive.nodes here, since we are iterating
+          # over all of them, and adding back in the config via `imports`
+          nodes = genAttrs
+            (
+              attrNames test.nodes or { } ++
+                attrNames test.interactive.nodes or { } ++
+                [ "jumphost" ]
+            )
+            (n: {
+              imports = [
+                (test.interactive.${n} or { })
+                interactiveConfig
+              ];
+            });
+        };
+        # override with test.passthru in case someone wants to overwrite us.
+        passthru = { inherit rebuildScript sshConfig; } // (test.passthru or { });
+      });
+    in
+    preOverride // {
+      driverInteractive = preOverride.driverInteractive.overrideAttrs (old: {
+        # this comes from runCommand, not mkDerivation, so this is the only
+        # hook we have to override
+        buildCommand = old.buildCommand + ''
+          ln -s ${sshConfig} $out/ssh-config
+          ln -s ${rebuildScript}/bin/rebuild $out/bin/rebuild
+        '';
+      });
     };
-    # override with test.passthru in case someone wants to overwrite us.
-    passthru = { inherit rebuildScript sshConfig; } // (test.passthru or { });
-  });
-  # TODO: put rebuildScript and sshConfig in driverInteractive
 in
 rebuildableTest
 
