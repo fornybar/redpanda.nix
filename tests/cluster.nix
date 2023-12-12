@@ -14,7 +14,7 @@ let
     services.redpanda = {
       enable = true;
       autoRestart = true;
-      cluster = {
+      cluster.nodes = {
         server0 = {
           advertised_rpc_api.address = "server0";
           advertised_kafka_api = [{ address = "server0"; }];
@@ -29,19 +29,17 @@ let
         };
       };
       settings = {
-        broker = {
-          redpanda = {
-            rpc_server.address = "0.0.0.0";
-            developer_mode = true;
-            empty_seed_starts_cluster = false;
-          };
-          rpk.overprovisioned = false;
+        redpanda = {
+          rpc_server.address = "0.0.0.0";
+          developer_mode = true;
+          empty_seed_starts_cluster = false;
         };
+        rpk.overprovisioned = false;
       };
     };
     specialisation.trigger_restart.configuration = {
       # change a bunch of stuff that in theory needs a restart, because in practice a lot of it doesn't
-      services.redpanda.settings.cluster = {
+      services.redpanda.cluster.settings = {
         kafka_connection_rate_limit = lib.mkForce 20;
         aggregate_metrics = true;
         disable_public_metrics = true;

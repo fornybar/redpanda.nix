@@ -10,11 +10,11 @@ let
 
   yaml = pkgs.formats.yaml { };
 
-  brokerCfg = cfg.settings.broker;
+  brokerCfg = cfg.settings;
 
   brokerYaml = yaml.generate "redpanda.yaml" brokerCfg;
 
-  clusterYaml = yaml.generate "redpanda-cluster.yaml" cfg.settings.cluster;
+  clusterYaml = yaml.generate "redpanda-cluster.yaml" cfg.cluster.settings;
 
   # Find all address/port sets in broker configuration, for opening dynamically
   hasPort = x: (x ? address) && (x ? port);
@@ -138,25 +138,25 @@ in
     nodeName = mkOption {
       type = str;
       default = config.networking.hostName;
-      description = "The name of this node inside services.redpanda.settings.cluster";
+      description = "The name of this node inside services.redpanda.cluster.nodes";
     };
 
-    cluster = mkOption {
-      type = attrsOf clusterEntryDefinition;
-      description = ''Description of the full cluster
+    cluster = {
+      nodes = mkOption {
+        type = attrsOf clusterEntryDefinition;
+        description = ''Description of the full cluster
 
-        This field is a bit unusual, as it must be the same across all the nodes
-        of a cluster, and thus across all the nixos configurations used.
-        The best way to define it is into a separate, always included module.
+          This field is a bit unusual, as it must be the same across all the nodes
+          of a cluster, and thus across all the nixos configurations used.
+          The best way to define it is into a separate, always included module.
 
-        These fields must be static, or at least constant w.r.t. the current node
-        `config`. For example, you cannot use `config.network.fqdn` to set the
-        address.
-        '';
-      default = { };
-      example = ''
-        {
-          services.redpanda.cluster = {
+          These fields must be static, or at least constant w.r.t. the current node
+          `config`. For example, you cannot use `config.network.fqdn` to set the
+          address.
+          '';
+        default = { };
+        example = ''
+          {
             alpha = {
               rpc_api.address = "0.0.0.0";
               advertised_rpc_api.addresss = "alpha.somewhere.com";
@@ -167,36 +167,34 @@ in
               advertised_rpc_api.addresss = "beta.somewhere.com";
               advertised_kafka_api.addresss = "beta.somewhere.com";
             };
+            gamma = {
+              rpc_api.address = "0.0.0.0";
+              advertised_rpc_api.addresss = "gamma.somewhere.com";
+              advertised_kafka_api.addresss = "gamma.somewhere.com";
+            };
             # ...
-          };
-        }
-      '';
+          }
+        '';
+      };
+
+      settings = mkOption {
+        type = yaml.type;
+        description = ''Cluster configuration properties
+
+        Reference: https://docs.redpanda.com/docs/reference/cluster-properties/
+        '';
+        default = { };
+      };
     };
 
     settings = mkOption {
-      description = "Configuration properties";
-      type = submodule {
-        options = {
-          broker = mkOption {
-            type = attrsOf anything;
-            description = ''Broker configuration properties
+      type = yaml.type;
+      description = ''Broker configuration properties
 
-            Will merge with default configuration, and tuned on startup.
-            Reference: https://docs.redpanda.com/docs/reference/node-configuration-sample/
-            '';
-            default = { };
-          };
-          cluster = mkOption {
-            type = attrsOf anything;
-            description = ''Cluster configuration properties
-
-            Reference: https://docs.redpanda.com/docs/reference/cluster-properties/
-            '';
-            default = { };
-          };
-        };
-      };
-      default = { broker = { }; cluster = { }; };
+      Will merge with default configuration, and tuned on startup.
+      Reference: https://docs.redpanda.com/docs/reference/node-configuration-sample/
+      '';
+      default = { };
     };
   };
 
@@ -207,11 +205,11 @@ in
       message = "If the redpanda option `iotune.file` is set, the corresponding `iotune.location` setting must be within `/etc/`";
     }];
 
-    services.redpanda.settings.broker = mkMerge [
+    services.redpanda.settings = mkMerge [
       # Reuse config for this nodeName in the cluster config.
       # TODO: should we assert that the current node is in the cluster? This seems most likely to be a mistake.
       #       maybe they can set nodeName = null; to opt out
-      { redpanda = (removeAttrs (cfg.cluster.${cfg.nodeName} or { }) [ "seed" ]); }
+      { redpanda = (removeAttrs (cfg.cluster.nodes.${cfg.nodeName} or { }) [ "seed" ]); }
       {
         # TODO: should we import ${redpanda.src}/conf/redpanda.yaml instead of reproducing that information here?
         redpanda = {
@@ -219,7 +217,7 @@ in
           rpc_server = { address = mkDefault "127.0.0.1"; port = mkDefault 33145; };
           advertised_rpc_api = {
             address = mkDefault "0.0.0.0";
-            port = mkDefault cfg.settings.broker.redpanda.rpc_server.port;
+            port = mkDefault cfg.settings.redpanda.rpc_server.port;
           };
           kafka_api = mkDefault [
             { address = "0.0.0.0"; port = 9092; }
@@ -231,11 +229,11 @@ in
             { address = "127.0.0.1"; port = 9644; }
           ];
           developer_mode = mkDefault false;
-          empty_seed_starts_cluster = mkDefault (cfg.cluster or { } == { });
+          empty_seed_starts_cluster = mkDefault (cfg.cluster.nodes == { });
           seed_servers = mkDefault
             (mapAttrsToList
               (_: node: { host = node.advertised_rpc_api; })
-              (filterAttrs (_: v: v.seed) cfg.cluster));
+              (filterAttrs (_: v: v.seed) cfg.cluster.nodes));
         };
         rpk = {
           coredump_dir = mkDefault "${cfg.configDir}/coredump";
@@ -249,9 +247,6 @@ in
         ];
       }
     ];
-
-    # TODO derive from cfg.cluster
-    #services.redpanda.settings.cluster = ...
 
     environment.systemPackages = [ cfg.packages.client cfg.packages.server ];
     networking.firewall.allowedTCPPorts = mkIf cfg.openPorts portsToOpen;

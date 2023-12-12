@@ -66,12 +66,13 @@ nixos-rebuild switch
 
 # Deploy a cluster
 
-To configure your broker as part of a cluster, you can specify a list of cluster nodes, and where they can be found. This setting should be the same across all nodes in a cluster, which can be done most easily by factoring the common configuration into a separate file, and importing into each machine's configuration.
+To configure your broker as part of a cluster, you can specify a list of cluster nodes, and where they can be found. This setting should be the same across all nodes in a cluster, which can be done most easily by factoring the common configuration into a separate file, and importing into each machine's configuration. All cluster settings go here as well.
 
 ```nix
 # cluster_configuration.nix
 {
-  services.redpanda.cluster.nodes = {
+  services.redpanda.cluster = {
+    nodes = {
       alpha = {
         rpc_api.address = "0.0.0.0";
         advertised_rpc_api.addresss = "alpha.somewhere.com";
@@ -89,6 +90,9 @@ To configure your broker as part of a cluster, you can specify a list of cluster
         advertised_kafka_api.addresss = "gamma.somewhere.com";
       };
       # ...
+    };
+    settings = {
+      default_topic_replications = 3;
     };
   };
 }
@@ -146,7 +150,7 @@ To switch to production mode set the `developer_mode` option to `false`.
 
 ```nix
 {
-  services.redpanda.settings.broker.redpanda.developer_mode = false;
+  services.redpanda.settings.redpanda.developer_mode = false;
 }
 ```
 
@@ -221,7 +225,7 @@ An example configuration looks like
 
 ```nix
 {
-  services.redpanda.settings.broker.redpanda = {
+  services.redpanda.settings.redpanda = {
     empty_seed_starts_cluster = false;
     seed_servers = [
       {
@@ -253,7 +257,7 @@ If you choose to assign broker IDs, make sure to use a fresh `node_id` each time
 
 ```nix
 {
-  services.redpanda.settings.broker.node_id = 0;
+  services.redpanda.settings.node_id = 0;
 }
 ```
 
@@ -283,7 +287,7 @@ Any cluster configuration command `rpk cluster config ...` should instead be set
 
 ```nix
 {
-  services.redpanda.settings.cluster = {
+  services.redpanda.cluster.settings = {
     # configuration goes here...
     # e.g.
     default_topic_replications = 3;
@@ -306,7 +310,7 @@ becomes
 ```nix
 # /etc/nixos/configuration.nix
 {
-  services.redpanda.settings.broker = {
+  services.redpanda.settings = {
     crash_loop_limit = 10;
     dashboard_dir = "/var/www/dashboard";
   };
