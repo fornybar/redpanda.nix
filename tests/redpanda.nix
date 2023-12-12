@@ -89,9 +89,9 @@ rebuildableTest {
       services.redpanda-acl = {
         enable = true;
         kafka = {
-          kafkaBootstrapServer = "0.0.0.0:9092";
-          kafkaUsername = "admin";
-          kafkaPassword = builtins.toFile "admin.password" "admin";
+          bootstrapServer = "0.0.0.0:9092";
+          username = "admin";
+          password = builtins.toFile "admin.password" "admin";
         };
         acls = {
           user-1 = {
