@@ -2,6 +2,7 @@
 let
   python = pkgs.python310.withPackages (ps: with ps; [ requests aiokafka ]);
   rebuildableTest = import ./rebuildableTest.nix pkgs;
+  change_acls = "/run/current-system/specialisation/change-acls/bin/switch-to-configuration test";
 in
 rebuildableTest {
   name = "test-redpanda";
@@ -29,10 +30,12 @@ rebuildableTest {
       virtualisation.memorySize = 5 * 1024; # 5GiB
       services.redpanda = {
         enable = true;
-        # I don't think there's a way to test this since
+
+        # FIXME: I don't think there's a way to test this since
         # - not specifying `file` makes it take a really long time
         # - specifying `file` is dependent on each person's computer
         # but all we do is start up the prodserver, so maybe the latter is fine.
+        #
         # iotune = {
         #   enable = true;
         #   file = ./io-config.yaml;
@@ -55,7 +58,7 @@ rebuildableTest {
       };
     };
 
-    authserver = {
+    authserver = { lib, ... }: {
       imports = [ self.nixosModules.redpanda self.nixosModules.redpanda-acl ];
       virtualisation.diskSize = 10 * 1024; # 10GiB
       virtualisation.memorySize = 2 * 1024; # 2GiB
@@ -125,6 +128,34 @@ rebuildableTest {
           };
         };
       };
+      specialisation.change-acls.configuration = {
+        services.redpanda-acl.acls = lib.mkForce {
+          user-1 = { };
+          user-2 = {
+            acls = [
+              {
+                topic = [ "raw" ];
+                operation = [ "write" ];
+                resource-pattern-type = "prefixed";
+              }
+              {
+                topic = [ "topic_1" "topic_2" ];
+                group = [ "group_2" "group_3" ];
+                operation = [ "Describe" ];
+              }
+            ];
+          };
+          user-3 = {
+            acls = [
+              {
+                topic = [ "raw" ];
+                operation = [ "read" "write" ];
+                resource-pattern-type = "prefixed";
+              }
+            ];
+          };
+        };
+      };
     };
 
     client = {
@@ -144,6 +175,7 @@ rebuildableTest {
   };
 
   testScript = ''
+    import re
 
     print("--> Starting testScript")
     server.start()
@@ -170,6 +202,26 @@ rebuildableTest {
       assert "User:user-1" in aclLog, "No ACLs created for user-1"
       assert "User:user-2" in aclLog, "No ACLs created for user-2"
 
+    with subtest("Test ACL modification"):
+      authserver.succeed("${change_acls}")
+      # XXX: it's nuts that this takes 60 seconds to sort itself out. tested that 30s is not long enough
+      authserver.succeed("sleep 60")
+      # authserver.wait_for_console_text("Finished creating ACLs")
+      acls = authserver.succeed("rpk acl list --user admin --password admin")
+      print(acls)
+
+      assert "User:user-1" not in acls, "ACLs not deleted for user-1"
+
+      assert "User:user-2" in acls, "All ACLs deleted for user-2"
+      p = re.compile('User:user-2.*WRITE')
+      assert p.match(acls) != None, "Write ACL not created for user-2"
+      p = re.compile('User:user-2.*READ')
+      assert p.match(acls) == None, "Read ACL not deleted for user-2"
+
+      assert "User:user-3" in acls, "No ACLs created for user-3"
+
+
+    server.shutdown()
     authserver.shutdown()
 
     prodserver.start() # May complain about having too little memory, so we run it alone
