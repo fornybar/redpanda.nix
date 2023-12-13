@@ -204,9 +204,11 @@ rebuildableTest {
 
     with subtest("Test ACL modification"):
       authserver.succeed("${change_acls}")
-      # XXX: it's nuts that this takes 60 seconds to sort itself out. tested that 30s is not long enough
-      authserver.succeed("sleep 60")
-      # authserver.wait_for_console_text("Finished creating ACLs")
+      # XXX: it's nuts that this takes 60 seconds to sort itself out.
+      # - tested that 30s is not long enough
+      # - waiting for "Finished creating ACLs" like above doesn't help
+      authserver.succeed("sleep 120")
+
       acls = authserver.succeed("rpk acl list --user admin --password admin")
       print(acls)
 
