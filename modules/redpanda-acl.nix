@@ -119,15 +119,15 @@ in
       description = "Kafka credentials to authenticate RPK with";
       type = submodule {
         options = {
-          kafkaBootstrapServer = mkOption {
+          bootstrapServer = mkOption {
             type = str;
             description = "Broker address to connect to";
           };
-          kafkaUsername = mkOption {
+          username = mkOption {
             type = str;
             description = "Username for connection";
           };
-          kafkaPassword = mkOption {
+          password = mkOption {
             type = path;
             description = "Path to file containing password for connection";
           };
@@ -150,7 +150,7 @@ in
       path = [ pkgs.redpanda ];
       serviceConfig = {
         ExecStart = ''
-          ${python.interpreter} ${./acl.py} ${aclFile} ${cfg.kafka.kafkaBootstrapServer} ${cfg.kafka.kafkaUsername} ${cfg.kafka.kafkaPassword}
+          ${python.interpreter} ${./acl.py} ${aclFile} ${cfg.kafka.bootstrapServer} ${cfg.kafka.username} ${cfg.kafka.password}
         '';
       };
     };

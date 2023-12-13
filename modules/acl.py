@@ -39,7 +39,7 @@ def get_arguments():
     )
     return parser.parse_args()
 
-def create_acl(
+def acl_cmd(
         action: str,
         resource_type: str,
         resource_name: str,
@@ -174,6 +174,9 @@ def main():
     acl_list = list_acl(broker, auth_command)
 
     merge = acl_list.merge(acl_df, on=TABLE_COLUMNS,how='outer', indicator=True)
+
+    # we break the ACLs down into granular parts, so any modification is going
+    # to show up as a set of additions and deletions
     new_acls = merge[merge['_merge'] == 'right_only']
     old_acls = merge[merge['_merge'] == 'left_only']
 
@@ -181,14 +184,14 @@ def main():
 
     for index, row in new_acls.iterrows():
         action = "create"
-        create_acl(action, row['RESOURCE-TYPE'], row['RESOURCE-NAME'], row['PRINCIPAL'], row['OPERATION'], row['RESOURCE-PATTERN-TYPE'], broker, auth_command)
+        acl_cmd(action, row['RESOURCE-TYPE'], row['RESOURCE-NAME'], row['PRINCIPAL'], row['OPERATION'], row['RESOURCE-PATTERN-TYPE'], broker, auth_command)
 
 
     logger.info(f"{len(old_acls)} ACLs to be deleted: \n {old_acls[TABLE_COLUMNS].to_string()}")
 
     for index, row in old_acls.iterrows():
         action = "delete"
-        create_acl(action, row['RESOURCE-TYPE'], row['RESOURCE-NAME'], row['PRINCIPAL'], row['OPERATION'], row['RESOURCE-PATTERN-TYPE'], broker, auth_command)
+        acl_cmd(action, row['RESOURCE-TYPE'], row['RESOURCE-NAME'], row['PRINCIPAL'], row['OPERATION'], row['RESOURCE-PATTERN-TYPE'], broker, auth_command)
 
     logger.info("Finished creating ACLs")
 
