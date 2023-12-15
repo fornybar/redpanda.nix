@@ -82,7 +82,7 @@ stdenv.mkDerivation rec {
     patchShebangs ./src/v/rpc/rpc_compiler.py
   '';
 
-  hardeningDisable = [ "fortify" ];
+  hardeningDisable = [ "all" ];
 
   doCheck = false;
 

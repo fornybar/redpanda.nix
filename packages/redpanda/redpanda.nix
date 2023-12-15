@@ -24,7 +24,7 @@ buildGoModule rec {
 
   nativeBuildInputs = [ installShellFiles ];
 
-  hardeningDisable = [ "fortify" ];
+  hardeningDisable = [ "all" ];
 
   postInstall = ''
     for shell in bash fish zsh; do
