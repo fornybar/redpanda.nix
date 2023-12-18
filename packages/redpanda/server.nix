@@ -82,8 +82,6 @@ stdenv.mkDerivation rec {
     patchShebangs ./src/v/rpc/rpc_compiler.py
   '';
 
-  hardeningDisable = [ "all" ];
-
   doCheck = false;
 
   nativeBuildInputs = [

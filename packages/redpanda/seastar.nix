@@ -36,6 +36,10 @@ llvmPackages.libcxxStdenv.mkDerivation {
     sha256 = "sha256-nGDw9FwasVfHc1RuBH29SR17x5uNS0CbBsDwOdUvH0s=";
   };
 
+  # Seastar does a lot of finicky things, and triggers fortify errors.
+  # See https://github.com/redpanda-data/seastar/blob/d1d5354b9e271041e5f5bda9d3e163adfdd825ab/CMakeLists.txt#L836-L841
+  hardeningDisable = [ "fortify" ];
+
   strictDeps = true;
 
   nativeBuildInputs = [

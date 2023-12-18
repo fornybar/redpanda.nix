@@ -24,8 +24,6 @@ buildGoModule rec {
 
   nativeBuildInputs = [ installShellFiles ];
 
-  hardeningDisable = [ "all" ];
-
   postInstall = ''
     for shell in bash fish zsh; do
       $out/bin/rpk generate shell-completion $shell > rpk.$shell
