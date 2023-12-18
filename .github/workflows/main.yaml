@@ -1,0 +1,38 @@
+name: Build and cachix packages
+run-name: "[Build] ${{ github.event.pull_request.title != '' && github.event.pull_request.title || github.ref_name }}"
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build and cachix packages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: nixbuild/nix-quick-install-action@v26
+        with:
+          nix_conf: |
+            experimental-features = nix-command flakes
+
+      - uses: nixbuild/nixbuild-action@v19
+        with:
+          nixbuild_token: ${{ secrets.NIXBUILD_TOKEN }}
+          generate_summary_for: 'workflow'
+
+      - uses: cachix/cachix-action@v12
+        with:
+          name: fornybar-open
+          authToken: '${{ secrets.CACHIX_FORNYBAR_OPEN }}'
+
+      - name: Build all packages and upload to cachix
+        run: |
+          PACKAGES=$(nix flake show --json | jq -r '
+            [.packages | paths | select(length == 2)
+            | ".#packages." + join(".")]
+            | join(" ")')
+
+          nix build -L $PACKAGES
