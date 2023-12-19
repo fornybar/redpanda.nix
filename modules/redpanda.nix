@@ -10,7 +10,7 @@ let
 
   yaml = pkgs.formats.yaml { };
 
-  brokerCfg = cfg.settings;
+  brokerCfg = cfg.broker.settings;
 
   brokerYaml = yaml.generate "redpanda.yaml" brokerCfg;
 
@@ -187,7 +187,7 @@ in
       };
     };
 
-    settings = mkOption {
+    broker.settings = mkOption {
       type = yaml.type;
       description = ''Broker configuration properties
 
@@ -205,7 +205,7 @@ in
       message = "If the redpanda option `iotune.file` is set, the corresponding `iotune.location` setting must be within `/etc/`";
     }];
 
-    services.redpanda.settings = mkMerge [
+    services.redpanda.broker.settings = mkMerge [
       # Reuse config for this nodeName in the cluster config.
       # TODO: should we assert that the current node is in the cluster? This seems most likely to be a mistake.
       #       maybe they can set nodeName = null; to opt out
@@ -217,7 +217,7 @@ in
           rpc_server = { address = mkDefault "127.0.0.1"; port = mkDefault 33145; };
           advertised_rpc_api = {
             address = mkDefault "0.0.0.0";
-            port = mkDefault cfg.settings.redpanda.rpc_server.port;
+            port = mkDefault cfg.broker.settings.redpanda.rpc_server.port;
           };
           kafka_api = mkDefault [
             { address = "0.0.0.0"; port = 9092; }

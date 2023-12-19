@@ -28,7 +28,7 @@ let
           advertised_kafka_api = [{ address = "server2"; }];
         };
       };
-      settings = {
+      broker.settings = {
         redpanda = {
           rpc_server.address = "0.0.0.0";
           developer_mode = true;

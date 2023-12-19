@@ -91,7 +91,7 @@ To configure your broker as part of a cluster, you can specify a list of cluster
       };
       # ...
     };
-    settings = {
+    broker.settings = {
       default_topic_replications = 3;
     };
   };
@@ -150,7 +150,7 @@ To switch to production mode set the `developer_mode` option to `false`.
 
 ```nix
 {
-  services.redpanda.settings.redpanda.developer_mode = false;
+  services.redpanda.broker.settings.redpanda.developer_mode = false;
 }
 ```
 
@@ -225,7 +225,7 @@ An example configuration looks like
 
 ```nix
 {
-  services.redpanda.settings.redpanda = {
+  services.redpanda.broker.settings.redpanda = {
     empty_seed_starts_cluster = false;
     seed_servers = [
       {
@@ -257,7 +257,7 @@ If you choose to assign broker IDs, make sure to use a fresh `node_id` each time
 
 ```nix
 {
-  services.redpanda.settings.node_id = 0;
+  services.redpanda.broker.settings.node_id = 0;
 }
 ```
 
@@ -297,7 +297,7 @@ Any cluster configuration command `rpk cluster config ...` should instead be set
 }
 ```
 
-Yaml configuration of broker properties will have to be renderered as a Nix attrset under the `services.redpanda.settings.broker` option. For example,
+Yaml configuration of broker properties will have to be renderered as a Nix attrset under the `services.redpanda.broker.settings` option. For example,
 
 ```yaml
 # /etc/redpanda/redpanda.yml
@@ -310,7 +310,7 @@ becomes
 ```nix
 # /etc/nixos/configuration.nix
 {
-  services.redpanda.settings = {
+  services.redpanda.broker.settings = {
     crash_loop_limit = 10;
     dashboard_dir = "/var/www/dashboard";
   };

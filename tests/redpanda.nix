@@ -12,7 +12,7 @@ rebuildableTest {
       virtualisation.memorySize = 2 * 1024; # 2GiB
       services.redpanda = {
         enable = true;
-        settings = {
+        broker.settings = {
           redpanda = {
             developer_mode = true;
             empty_seed_starts_cluster = true;
@@ -37,9 +37,9 @@ rebuildableTest {
         #   enable = true;
         #   file = ./io-config.yaml;
         # };
-        settings.developer_mode = false;
+        broker.settings.developer_mode = false;
         # XXX: what are these settings? do they do anything? I couldn't find them in the documentation
-        settings.rpk = {
+        broker.settings.rpk = {
           ballast_file_size = "1B";
           tune_net = true;
           tune_disk_scheduler = true;
@@ -63,7 +63,7 @@ rebuildableTest {
       services.redpanda = {
         enable = true;
         admin.password = builtins.toFile "admin.password" "admin";
-        settings = {
+        broker.settings = {
           redpanda = {
             developer_mode = true;
             empty_seed_starts_cluster = true;
