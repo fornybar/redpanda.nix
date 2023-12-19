@@ -3,14 +3,14 @@
 let
   arch = if stdenv.isAarch64 then "arm" else "amd";
   sha256s = {
-    amd = "sha256-Zk9UOGyuIHhFBT01BjCpkyrI6ZZU+SxCtxBdLiuj5Ds=";
+    amd = "sha256-Y6R6312zD0bkAxnDIEH2czJF4Utv4lRKIzoPyDdfCdM=";
     arm = ""; # TODO: Figure out this
   };
 
 in
 stdenv.mkDerivation rec {
   pname = "redpanda-bin";
-  version = "23.2.17";
+  version = "23.2.19";
 
   src = fetchzip {
     url = "https://dl.redpanda.com/nzc4ZYQK3WRGd9sy/redpanda/raw/names/redpanda-${arch}64/versions/${version}/redpanda-${version}-${arch}64.tar.gz";
