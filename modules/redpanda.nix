@@ -285,6 +285,8 @@ in
         pkgs.which
         pkgs.hwloc
         pkgs.util-linux
+        pkgs.inetutils
+        pkgs.gawk
       ];
       script = ''
         set -euo pipefail
@@ -295,6 +297,7 @@ in
         mkdir -p ${cfg.configDir}
         mkdir -p ${brokerCfg.redpanda.data_directory}
         cp ${brokerYaml} ${cfg.configDir}/redpanda.yaml
+        cp ${clusterYaml} ${cfg.configDir}/.bootstrap.yaml
 
         ${rpkCmd} redpanda tune all --verbose
         ${lib.optionalString (cfg.iotune.enable && cfg.iotune.file == null) ''
