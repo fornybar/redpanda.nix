@@ -8,6 +8,8 @@ rebuildableTest {
   nodes = {
     server = {
       imports = [ self.nixosModules.redpanda ]; #redpanda-console doesn't work without internet
+      virtualisation.diskSize = 10 * 1024; # 10GiB
+      virtualisation.memorySize = 2 * 1024; # 2GiB
       services.redpanda = {
         enable = true;
         settings.broker = {
@@ -55,6 +57,9 @@ rebuildableTest {
 
     authserver = {
       imports = [ self.nixosModules.redpanda self.nixosModules.redpanda-acl ];
+      virtualisation.diskSize = 10 * 1024; # 10GiB
+      virtualisation.memorySize = 2 * 1024; # 2GiB
+
       services.redpanda = {
         enable = true;
         admin.password = builtins.toFile "admin.password" "admin";
