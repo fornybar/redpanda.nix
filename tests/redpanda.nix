@@ -12,7 +12,7 @@ rebuildableTest {
       virtualisation.memorySize = 2 * 1024; # 2GiB
       services.redpanda = {
         enable = true;
-        settings.broker = {
+        broker.settings = {
           redpanda = {
             developer_mode = true;
             empty_seed_starts_cluster = true;
@@ -37,9 +37,9 @@ rebuildableTest {
         #   enable = true;
         #   file = ./io-config.yaml;
         # };
-        settings.broker.developer_mode = false;
+        broker.settings.developer_mode = false;
         # XXX: what are these settings? do they do anything? I couldn't find them in the documentation
-        settings.broker.rpk = {
+        broker.settings.rpk = {
           ballast_file_size = "1B";
           tune_net = true;
           tune_disk_scheduler = true;
@@ -63,32 +63,30 @@ rebuildableTest {
       services.redpanda = {
         enable = true;
         admin.password = builtins.toFile "admin.password" "admin";
-        settings = {
-          broker = {
-            redpanda = {
-              developer_mode = true;
-              empty_seed_starts_cluster = true;
-              kafka_api = [
-                { address = "0.0.0.0"; port = 9092; authentication_method = "sasl"; }
-              ];
-              advertised_kafka_api = [
-                # Required for being accessible from client
-                { address = "authserver"; port = 9092; }
-              ];
-            };
-            pandaproxy.pandaproxy_api = [
-              { address = "0.0.0.0"; port = 8082; authentication_method = "http_basic"; }
+        broker.settings = {
+          redpanda = {
+            developer_mode = true;
+            empty_seed_starts_cluster = true;
+            kafka_api = [
+              { address = "0.0.0.0"; port = 9092; authentication_method = "sasl"; }
             ];
-            schema_registry.schema_registry_api = [
-              { address = "0.0.0.0"; port = 8081; authentication_method = "http_basic"; }
+            advertised_kafka_api = [
+              # Required for being accessible from client
+              { address = "authserver"; port = 9092; }
             ];
-            rpk.overprovisioned = false;
           };
-          cluster = {
-            kafka_enable_authorization = true;
-            superusers = [ "admin" ];
-            auto_create_topics_enabled = true;
-          };
+          pandaproxy.pandaproxy_api = [
+            { address = "0.0.0.0"; port = 8082; authentication_method = "http_basic"; }
+          ];
+          schema_registry.schema_registry_api = [
+            { address = "0.0.0.0"; port = 8081; authentication_method = "http_basic"; }
+          ];
+          rpk.overprovisioned = false;
+        };
+        cluster.settings = {
+          kafka_enable_authorization = true;
+          superusers = [ "admin" ];
+          auto_create_topics_enabled = true;
         };
       };
 
