@@ -42,7 +42,7 @@
         redpanda-acl = import ./modules/redpanda-acl.nix;
       };
 
-      packages.${system} = import ./packages { inherit (pkgs) callPackage callPackages; };
+      packages.${system} = pkgs.callPackages ./packages { };
 
       checks.${system} = pkgs.lib.lists.foldl' pkgs.lib.attrsets.unionOfDisjoint { } [
         nixosTests
