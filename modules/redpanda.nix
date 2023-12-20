@@ -278,6 +278,8 @@ in
         cfg.packages.client
         cfg.packages.server
         pkgs.which
+        # XXX: recent redpanda versions do not need it.
+        # They rely on bundled hwloc-xxx-redpanda binaries
         pkgs.hwloc
         pkgs.util-linux
         pkgs.inetutils
@@ -285,6 +287,7 @@ in
       ];
       script = ''
         set -euo pipefail
+        set -x
 
         mkdir -p /opt
         ln -sfn ${cfg.packages.server} /opt/redpanda
@@ -298,7 +301,7 @@ in
         ${lib.optionalString (cfg.iotune.enable && cfg.iotune.file == null) ''
             if ! [ -f ${cfg.iotune.location} ]; then
               mkdir -p $(dirname ${cfg.iotune.location})
-              ${rpkCmd} iotune --out ${cfg.iotune.location}
+              ${rpkCmd} iotune --out ${cfg.iotune.location} || true
             fi
           ''
         }

@@ -5,6 +5,9 @@
 , stdenv
 , redpanda_src
 , redpanda_version
+, hwloc
+, seastar
+, redpanda-server
 }:
 
 buildGoModule rec {
@@ -29,6 +32,17 @@ buildGoModule rec {
       $out/bin/rpk generate shell-completion $shell > rpk.$shell
       installShellCompletion rpk.$shell
     done
+
+    # Copy instead of symlink to reduce closure size.
+    # These are self-contained binaries anyway.
+    mkdir -p $out/libexec $out/bin
+    install -m 755 ${hwloc}/bin/hwloc-calc $out/libexec/hwloc-calc-redpanda
+    install -m 755 ${hwloc}/bin/hwloc-distrib $out/libexec/hwloc-distrib-redpanda
+    install -m 755 ${seastar}/bin/iotune $out/libexec/iotune-redpanda
+    install -m 755 ${redpanda-server}/bin/rp_util $out/libexec/rp_util
+
+    # The official release archive also has these binaries in //bin
+    ln -sn $out/libexec/* $out/bin
   '';
 
   meta = with lib; {

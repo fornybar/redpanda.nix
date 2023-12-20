@@ -36,6 +36,9 @@ llvmPackages.libcxxStdenv.mkDerivation {
     sha256 = "sha256-nGDw9FwasVfHc1RuBH29SR17x5uNS0CbBsDwOdUvH0s=";
   };
 
+  # Breaks exported cmakeConfig include paths
+  #outputs = [ "out" "dev" ];
+
   # Seastar does a lot of finicky things, and triggers fortify errors.
   # See https://github.com/redpanda-data/seastar/blob/d1d5354b9e271041e5f5bda9d3e163adfdd825ab/CMakeLists.txt#L836-L841
   hardeningDisable = [ "fortify" ];
@@ -84,14 +87,23 @@ llvmPackages.libcxxStdenv.mkDerivation {
     # NOTE: redpanda expects to be building seastar itself, whereas we build it in a separate package.
     "-DSeastar_CXX_FLAGS=-Wno-error"
     "-DSeastar_DPDK=OFF"
-    "-DSeastar_APPS=OFF"
     "-DSeastar_DEMOS=OFF"
     "-DSeastar_DOCS=OFF"
     "-DSeastar_TESTING=OFF"
     "-DSeastar_API_LEVEL=6"
     "-DSeastar_CXX_DIALECT=c++20"
     # "-DSeastar_UNUSED_RESULT_ERROR=ON"
+
+    # Apps are needed by redpanda iotune
+    "-DSeastar_APPS=ON"
   ];
+
+  postInstall = ''
+    for app in httpd io_tester io_tester iotune rpc_tester seawreck memcached
+    do
+      install apps/$app/$app $out/bin
+    done
+  '';
 
   doCheck = false;
 

@@ -10,5 +10,6 @@ rec {
   inherit (callPackages ./redpanda { })
     redpanda-server
     redpanda-client
+    seastar
     ;
 }
