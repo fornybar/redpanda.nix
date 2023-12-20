@@ -22,6 +22,9 @@ rebuildableTest {
 
     prodserver = {
       imports = [ self.nixosModules.redpanda ];
+      # Production settings are more strict about available ressources
+      virtualisation.diskSize = 10 * 1024; # 10GiB
+      virtualisation.memorySize = 5 * 1024; # 5GiB
       services.redpanda = {
         enable = true;
         # I don't think there's a way to test this since
