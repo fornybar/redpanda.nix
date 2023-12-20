@@ -8,6 +8,8 @@ rebuildableTest {
   nodes = {
     server = {
       imports = [ self.nixosModules.redpanda ]; #redpanda-console doesn't work without internet
+      virtualisation.diskSize = 10 * 1024; # 10GiB
+      virtualisation.memorySize = 2 * 1024; # 2GiB
       services.redpanda = {
         enable = true;
         settings.broker = {
@@ -22,6 +24,9 @@ rebuildableTest {
 
     prodserver = {
       imports = [ self.nixosModules.redpanda ];
+      # Production settings are more strict about available ressources
+      virtualisation.diskSize = 10 * 1024; # 10GiB
+      virtualisation.memorySize = 5 * 1024; # 5GiB
       services.redpanda = {
         enable = true;
         # I don't think there's a way to test this since
@@ -52,6 +57,9 @@ rebuildableTest {
 
     authserver = {
       imports = [ self.nixosModules.redpanda self.nixosModules.redpanda-acl ];
+      virtualisation.diskSize = 10 * 1024; # 10GiB
+      virtualisation.memorySize = 2 * 1024; # 2GiB
+
       services.redpanda = {
         enable = true;
         admin.password = builtins.toFile "admin.password" "admin";
@@ -141,7 +149,6 @@ rebuildableTest {
 
     print("--> Starting testScript")
     server.start()
-    authserver.start()
     client.start()
 
     with subtest("Simple produce/consume test"):
@@ -149,6 +156,9 @@ rebuildableTest {
       server.wait_until_succeeds("rpk cluster health --exit-when-healthy", timeout=100)
       server.succeed("rpk topic create hei", timeout=100)
       client.succeed("python ${./produce.py} 1>&2", timeout=100)
+
+    server.shutdown()
+    authserver.start()
 
     with subtest("Test authentication enabled"):
       authserver.wait_for_unit("redpanda-acl.service")
@@ -162,7 +172,6 @@ rebuildableTest {
       assert "User:user-1" in aclLog, "No ACLs created for user-1"
       assert "User:user-2" in aclLog, "No ACLs created for user-2"
 
-    server.shutdown()
     authserver.shutdown()
 
     prodserver.start() # May complain about having too little memory, so we run it alone
