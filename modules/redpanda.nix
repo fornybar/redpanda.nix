@@ -278,6 +278,8 @@ in
         cfg.packages.client
         cfg.packages.server
         pkgs.which
+        # XXX: recent redpanda versions do not need it.
+        # They rely on bundled hwloc-xxx-redpanda binaries
         pkgs.hwloc
         pkgs.util-linux
         pkgs.inetutils

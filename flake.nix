@@ -14,46 +14,41 @@
       system = "x86_64-linux";
       pkgs = import nixpkgs {
         inherit system; config.allowUnfree = true;
-        overlays = builtins.attrValues self.overlays;
       };
       nixosTests = {
         redpanda = import ./tests/redpanda.nix { inherit pkgs self; };
         cluster = import ./tests/cluster.nix { inherit pkgs self; };
       };
+      pre-commit-check = pre-commit-hooks.lib.${system}.run {
+        src = ./.;
+        hooks.nixpkgs-fmt.enable = true;
+      };
     in
     {
-      overlays = {
-        redpanda = final: prev: {
-          redpanda = final.callPackage ./packages/redpanda { };
-        };
-        redpanda-console = final: prev: {
-          redpanda-console = final.callPackage ./packages/redpanda-console { };
-        };
-      };
+      overlays.redpanda = import ./packages/overlay.nix;
 
       nixosModules = {
-        redpanda = { pkgs, ... }: {
+        redpanda = { pkgs, lib, ... }: {
           imports = [ ./modules/redpanda.nix ];
           # FIXME: once we have a functional redpanda-server in nixpkgs, this can be removed
-          services.redpanda.packages.server = pkgs.callPackage ./packages/redpanda { };
+          services.redpanda.packages.server = lib.mkDefault (pkgs.callPackages ./packages { }).redpanda-server;
+          services.redpanda.packages.client = lib.mkDefault (pkgs.callPackages ./packages { }).redpanda-client;
         };
-        redpanda-console = { pkgs, ... }: {
+        redpanda-console = { pkgs, lib, ... }: {
           imports = [ ./modules/redpanda-console.nix ];
           # FIXME: once we have a redpanda-console in nixpkgs, this can be removed
-          services.redpanda-console.package = pkgs.callPackage ./packages/redpanda-console { };
+          services.redpanda-console.package = lib.mkDefault (pkgs.callPackages ./packages { }).redpanda-console;
         };
         redpanda-acl = import ./modules/redpanda-acl.nix;
       };
 
-      packages.${system} = { inherit (pkgs) redpanda redpanda-console; };
+      packages.${system} = pkgs.callPackages ./packages { };
 
-      checks.${system} = {
-        inherit (pkgs) redpanda redpanda-console;
-        pre-commit-check = pre-commit-hooks.lib.${system}.run {
-          src = ./.;
-          hooks.nixpkgs-fmt.enable = true;
-        };
-      } // nixosTests;
+      checks.${system} = pkgs.lib.lists.foldl' pkgs.lib.attrsets.unionOfDisjoint { } [
+        nixosTests
+        self.packages.${system}
+        { inherit pre-commit-check; }
+      ];
 
       apps.${system} = {
         clusterInteractive = {
