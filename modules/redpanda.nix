@@ -287,7 +287,6 @@ in
       ];
       script = ''
         set -euo pipefail
-        set -x
 
         mkdir -p /opt
         ln -sfn ${cfg.packages.server} /opt/redpanda
@@ -301,7 +300,7 @@ in
         ${lib.optionalString (cfg.iotune.enable && cfg.iotune.file == null) ''
             if ! [ -f ${cfg.iotune.location} ]; then
               mkdir -p $(dirname ${cfg.iotune.location})
-              ${rpkCmd} iotune --out ${cfg.iotune.location} || true
+              ${rpkCmd} iotune --out ${cfg.iotune.location}
             fi
           ''
         }
