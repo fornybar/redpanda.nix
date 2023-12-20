@@ -1,6 +1,11 @@
 {
   description = "NixOS module for Redpanda";
 
+  nixConfig = {
+    extra-substituters = [ "https://fornybar-open.cachix.org" ];
+    extra-trusted-public-keys = [ "fornybar-open.cachix.org-1:n2UA90DZm4B7zxfMRsZzg4CBAWy6Ij6mU7FTaCkyIsI=" ];
+  };
+
   inputs.nixpkgs.url = "nixpkgs/nixos-unstable";
   inputs.pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
 
