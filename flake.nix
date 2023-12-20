@@ -14,7 +14,6 @@
       system = "x86_64-linux";
       pkgs = import nixpkgs {
         inherit system; config.allowUnfree = true;
-        #overlays = builtins.attrValues self.overlays;
       };
       nixosTests = {
         redpanda = import ./tests/redpanda.nix { inherit pkgs self; };
@@ -29,17 +28,16 @@
       overlays.redpanda = import ./packages/overlay.nix;
 
       nixosModules = {
-        redpanda = { pkgs, ... }: {
+        redpanda = { pkgs, lib, ... }: {
           imports = [ ./modules/redpanda.nix ];
           # FIXME: once we have a functional redpanda-server in nixpkgs, this can be removed
-          services.redpanda.packages.server = (pkgs.callPackages ./packages { }).redpanda-server;
-          # XXX: unify client / rpk naming
-          services.redpanda.packages.client = (pkgs.callPackages ./packages { }).redpanda-client;
+          services.redpanda.packages.server = lib.mkDefault (pkgs.callPackages ./packages { }).redpanda-server;
+          services.redpanda.packages.client = lib.mkDefault (pkgs.callPackages ./packages { }).redpanda-client;
         };
-        redpanda-console = { pkgs, ... }: {
+        redpanda-console = { pkgs, lib, ... }: {
           imports = [ ./modules/redpanda-console.nix ];
           # FIXME: once we have a redpanda-console in nixpkgs, this can be removed
-          services.redpanda-console.package = (pkgs.callPackages ./packages { }).redpanda-console;
+          services.redpanda-console.package = lib.mkDefault (pkgs.callPackages ./packages { }).redpanda-console;
         };
         redpanda-acl = import ./modules/redpanda-acl.nix;
       };
