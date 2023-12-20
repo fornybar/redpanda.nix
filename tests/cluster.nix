@@ -8,6 +8,9 @@ let
   baseConfig = { lib, ... }: {
     imports = [ self.nixosModules.redpanda ];
 
+    virtualisation.diskSize = 10 * 1024; # 10GiB
+    virtualisation.memorySize = 2 * 1024; # 2GiB
+
     services.redpanda = {
       enable = true;
       autoRestart = true;
