@@ -64,7 +64,6 @@
 
       devShells.${system}.default = pkgs.mkShell {
         packages = with pkgs; [
-          redpanda
           openssl
           python3
           python3Packages.aiokafka
