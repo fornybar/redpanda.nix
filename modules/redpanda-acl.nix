@@ -149,6 +149,8 @@ in
       wants = [ "network-online.target" ];
       path = [ pkgs.redpanda ];
       serviceConfig = {
+        Type = "oneshot";
+        # TODO: do we want RemainAfterExit = true here?
         ExecStart = ''
           ${python.interpreter} ${./acl.py} ${aclFile} ${cfg.kafka.bootstrapServer} ${cfg.kafka.username} ${cfg.kafka.password}
         '';
