@@ -1,4 +1,5 @@
-{ boost
+{ stdenv
+, boost
 , c-ares
 , cmake
 , cryptopp
@@ -12,7 +13,6 @@
 , liburing
 , libxfs
 , lksctp-tools
-, llvmPackages
 , lz4
 , ninja
 , numactl
@@ -26,7 +26,7 @@
 , yaml-cpp
 }:
 
-llvmPackages.libcxxStdenv.mkDerivation {
+stdenv.mkDerivation {
   pname = "seastar";
   version = seastar_version;
   src = fetchFromGitHub {

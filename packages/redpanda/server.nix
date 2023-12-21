@@ -66,7 +66,7 @@ stdenv.mkDerivation rec {
     export TMPDIR=/tmp
   '';
 
-  patches = [ ./redpanda.patch ];
+  patches = [ ./redpanda.patch ./libstdcxx.patch ];
 
   postPatch = ''
     # Fix 'error: use of undeclared identifier 'roaring'; did you mean 'Roaring

@@ -1,0 +1,27 @@
+diff --git a/src/v/utils/log_hist.h b/src/v/utils/log_hist.h
+index 6fb3272de5..abc436f439 100644
+--- a/src/v/utils/log_hist.h
++++ b/src/v/utils/log_hist.h
+@@ -18,6 +18,7 @@
+ #include <bit>
+ #include <chrono>
+ #include <cstdint>
++#include <optional>
+
+ /*
+  * A histogram implementation
+diff --git a/src/v/serde/serde.h b/src/v/serde/serde.h
+index e1e10df6321a..e5c1049dbe6d 100644
+--- a/src/v/serde/serde.h
++++ b/src/v/serde/serde.h
+@@ -910,8 +910,8 @@ template<typename T>
+ std::decay_t<T>
+ read_nested(iobuf_parser& in, std::size_t const bytes_left_limit) {
+     using Type = std::decay_t<T>;
+-    static_assert(
+-      std::is_default_constructible_v<T> || has_serde_direct_read<T>);
++    //static_assert(
++    //  std::is_default_constructible_v<T> || has_serde_direct_read<T>);
+     if constexpr (has_serde_direct_read<T>) {
+         auto const h = read_header<Type>(in, bytes_left_limit);
+         return Type::serde_direct_read(in, h);

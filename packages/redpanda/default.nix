@@ -52,7 +52,8 @@ let inherit (self) callPackage; in
 
   # We have to build with clang 16 and libc++
   llvmPackages = llvmPackages_16;
-  clangStdenv = self.llvmPackages.libcxxStdenv;
+  #clangStdenv = self.llvmPackages.libcxxStdenv;
+  clangStdenv = self.llvmPackages.stdenv;
   stdenv = self.clangStdenv;
 
   # All the dependencies, and their dependencies, and... need to be built with
@@ -60,30 +61,32 @@ let inherit (self) callPackage; in
   # c++ lib mismatch between libc++ and libstdc++. You have to add that
   # dependency here, and override packages that use it (see protobuf and
   # avro-cpp for example).
-  abseil-cpp = abseil-cpp_202206.override { inherit (self) stdenv; };
-  cryptopp = cryptopp.override { inherit (self) stdenv; };
-  fmt_8 = fmt_8.override { inherit (self) stdenv; };
-  gtest = gtest.override { inherit (self) stdenv; };
-  protobuf = protobuf_21.override { inherit (self) stdenv abseil-cpp gtest; };
-  yaml-cpp = yaml-cpp.override { inherit (self) stdenv; };
+  abseil-cpp = abseil-cpp_202206; #.override { inherit (self) stdenv; };
+  #cryptopp = cryptopp.override { inherit (self) stdenv; };
+  #fmt_8 = fmt_8.override { inherit (self) stdenv; };
+  #gtest = gtest.override { inherit (self) stdenv; };
+  protobuf = protobuf_21.override { inherit (self) /* stdenv */ abseil-cpp/* gtest */; };
+  #yaml-cpp = yaml-cpp.override { inherit (self) stdenv; };
 
   boost = boost175.override {
-    inherit (self) stdenv;
+    #inherit (self) stdenv;
     enablePython = true;
     # Build fails with python 3.11, should be fixed in more recent boost versions
     python = python310; # XXX I do not think it is needed: .withPackages (ps: [ ps.jinja2 ]);
   };
 
   avro-cpp = (avro-cpp.override {
-    inherit (self) stdenv boost;
+    #inherit (self) stdenv boost;
+    inherit (self) boost;
   }).overrideAttrs (oldAttrs: {
     # XXX: Why are these suddenly needed when built with clang and libc++ ?
+    # XXX probably python in boost
     buildInputs = oldAttrs.buildInputs or [ ] ++ [ zlib icu bzip2 lzma zstd ];
   });
 
 
   liburing = (liburing.override {
-    inherit (self) stdenv;
+    #inherit (self) stdenv;
   }).overrideAttrs (oldAttrs: rec {
     # liburing needs to be <= 2.2,
     # see https://github.com/redpanda-data/seastar/pull/91
@@ -99,7 +102,7 @@ let inherit (self) callPackage; in
   });
 
   re2 = (re2.override {
-    inherit (self) stdenv;
+    #inherit (self) stdenv;
   }).overrideAttrs (oldAttrs: rec {
     # re2 needs to be < 2023-06-01,
     # see https://github.com/redpanda-data/redpanda/issues/15408
