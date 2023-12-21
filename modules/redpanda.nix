@@ -347,6 +347,9 @@ in
       };
       serviceConfig = {
         Type = "oneshot";
+        # TODO:
+        # - do we want RemainAfterExit = true?
+        # - should we take advantage of it to distinguish between first startup and later restarts?
         RemainAfterExit = "true";
         TimeoutStartSec = 900;
         KillMode = "process";
