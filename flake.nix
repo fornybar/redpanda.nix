@@ -37,7 +37,7 @@
         redpanda-console = { pkgs, lib, ... }: {
           imports = [ ./modules/redpanda-console.nix ];
           # FIXME: once we have a redpanda-console in nixpkgs, this can be removed
-          services.redpanda-console.package = lib.mkDefault (pkgs.callPackages ./packages { }).redpanda-console;
+          services.redpanda-console.package = lib.mkDefault (pkgs.callPackages ./packages { }).redpanda-console-bin;
         };
         redpanda-acl = import ./modules/redpanda-acl.nix;
       };
