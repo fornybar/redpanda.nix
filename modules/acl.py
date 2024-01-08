@@ -235,6 +235,29 @@ def main():
     else:
         auth_command = []
 
+    logger.info("Start creating users")
+
+    acl_user_list = acl_users(acl_dict)
+    existing_user_list = list_users(broker, auth_command)
+
+    merge = existing_user_list.merge(acl_user_list, on=["USERNAME"],how='outer', indicator=True)
+    new_users = merge[merge['_merge'] == 'right_only']
+    old_users = merge[merge['_merge'] == 'left_only']
+    old_users = old_users.drop(old_users[old_users['USERNAME'] == 'admin'].index) # We don't want to delete the admin user
+
+    logger.info(f"{len(new_users)} Users to be created: \n {new_users[['USERNAME']].to_string()}")
+
+    for _, row in new_users.iterrows():
+        password_file = acl_dict[row['USERNAME']].get("userPasswordFile")
+        password = Path(password_file).read_text().strip()
+        user_create(row["USERNAME"], password, broker, auth_command)
+
+    logger.info(f"{len(old_users)} Users to be deleted: \n {old_users[['USERNAME']].to_string()}")
+
+    for _, row in old_users.iterrows():
+        user_delete(row["USERNAME"], broker, auth_command)
+
+    logger.info("Finished creating users")
     logger.info("Start creating ACLs")
 
     acl_df = acl_to_df(acl_dict)
@@ -249,14 +272,13 @@ def main():
 
     logger.info(f"{len(new_acls)} ACLs to be created: \n {new_acls[TABLE_COLUMNS].to_string()}")
 
-    for index, row in new_acls.iterrows():
+    for _, row in new_acls.iterrows():
         action = "create"
         acl_cmd(action, row['RESOURCE-TYPE'], row['RESOURCE-NAME'], row['PRINCIPAL'], row['OPERATION'], row['RESOURCE-PATTERN-TYPE'], broker, auth_command)
 
-
     logger.info(f"{len(old_acls)} ACLs to be deleted: \n {old_acls[TABLE_COLUMNS].to_string()}")
 
-    for index, row in old_acls.iterrows():
+    for _, row in old_acls.iterrows():
         action = "delete"
         acl_cmd(action, row['RESOURCE-TYPE'], row['RESOURCE-NAME'], row['PRINCIPAL'], row['OPERATION'], row['RESOURCE-PATTERN-TYPE'], broker, auth_command)
 
