@@ -149,6 +149,73 @@ def list_acl(broker: str, auth_command: list):
 
     return df
 
+def list_users(broker: str, auth_command: list):
+    """List active users in Redpanda"""
+
+    command = [
+        "rpk",
+        "acl",
+        "user",
+        "list",
+        "--brokers",
+        broker
+    ]
+    total_command = command + auth_command
+
+    acl_list = subprocess.run(total_command, capture_output=True, check=True)
+
+    output = acl_list.stdout.decode().strip().splitlines()[1:]
+    data = []
+    for output_row in output:
+        data.append(output_row)
+
+    df = pd.DataFrame(data, columns=["USERNAME"])
+
+    return df
+
+def acl_users(acl_dict: str):
+    """List defined users in ACL config"""
+
+    users = []
+    for user in acl_dict:
+        users.append(user)
+    df = pd.DataFrame(users, columns=["USERNAME"])
+
+    return df
+
+def user_create(username: str, password: str, broker: str, auth_command: list):
+    """Create user in Redpanda"""
+
+    command = [
+        "rpk",
+        "acl",
+        "user",
+        "create",
+        username,
+        "--new-password",
+        password,
+        "--brokers",
+        broker
+    ]
+    total_command = command + auth_command
+
+    subprocess.run(total_command)
+
+def user_delete(username: str, broker: str, auth_command: list):
+    """Delete user in Redpanda"""
+
+    command = [
+        "rpk",
+        "acl",
+        "user",
+        "delete",
+        username,
+        "--brokers",
+        broker
+    ]
+    total_command = command + auth_command
+
+    subprocess.run(total_command)
 
 def main():
     args = get_arguments()
