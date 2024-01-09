@@ -149,6 +149,73 @@ def list_acl(broker: str, auth_command: list):
 
     return df
 
+def list_users(broker: str, auth_command: list):
+    """List active users in Redpanda"""
+
+    command = [
+        "rpk",
+        "acl",
+        "user",
+        "list",
+        "--brokers",
+        broker
+    ]
+    total_command = command + auth_command
+
+    acl_list = subprocess.run(total_command, capture_output=True, check=True)
+
+    output = acl_list.stdout.decode().strip().splitlines()[1:]
+    data = []
+    for output_row in output:
+        data.append(output_row)
+
+    df = pd.DataFrame(data, columns=["USERNAME"])
+
+    return df
+
+def acl_users(acl_dict: str):
+    """List defined users in ACL config"""
+
+    users = []
+    for user in acl_dict:
+        users.append(user)
+    df = pd.DataFrame(users, columns=["USERNAME"])
+
+    return df
+
+def user_create(username: str, password: str, broker: str, auth_command: list):
+    """Create user in Redpanda"""
+
+    command = [
+        "rpk",
+        "acl",
+        "user",
+        "create",
+        username,
+        "--new-password",
+        password,
+        "--brokers",
+        broker
+    ]
+    total_command = command + auth_command
+
+    subprocess.run(total_command)
+
+def user_delete(username: str, broker: str, auth_command: list):
+    """Delete user in Redpanda"""
+
+    command = [
+        "rpk",
+        "acl",
+        "user",
+        "delete",
+        username,
+        "--brokers",
+        broker
+    ]
+    total_command = command + auth_command
+
+    subprocess.run(total_command)
 
 def main():
     args = get_arguments()
@@ -168,6 +235,29 @@ def main():
     else:
         auth_command = []
 
+    logger.info("Start creating users")
+
+    acl_user_list = acl_users(acl_dict)
+    existing_user_list = list_users(broker, auth_command)
+
+    merge = existing_user_list.merge(acl_user_list, on=["USERNAME"],how='outer', indicator=True)
+    new_users = merge[merge['_merge'] == 'right_only']
+    old_users = merge[merge['_merge'] == 'left_only']
+    old_users = old_users.drop(old_users[old_users['USERNAME'] == 'admin'].index) # We don't want to delete the admin user
+
+    logger.info(f"{len(new_users)} Users to be created: \n {new_users[['USERNAME']].to_string()}")
+
+    for _, row in new_users.iterrows():
+        password_file = acl_dict[row['USERNAME']].get("userPasswordFile")
+        password = Path(password_file).read_text().strip()
+        user_create(row["USERNAME"], password, broker, auth_command)
+
+    logger.info(f"{len(old_users)} Users to be deleted: \n {old_users[['USERNAME']].to_string()}")
+
+    for _, row in old_users.iterrows():
+        user_delete(row["USERNAME"], broker, auth_command)
+
+    logger.info("Finished creating users")
     logger.info("Start creating ACLs")
 
     acl_df = acl_to_df(acl_dict)
@@ -182,14 +272,13 @@ def main():
 
     logger.info(f"{len(new_acls)} ACLs to be created: \n {new_acls[TABLE_COLUMNS].to_string()}")
 
-    for index, row in new_acls.iterrows():
+    for _, row in new_acls.iterrows():
         action = "create"
         acl_cmd(action, row['RESOURCE-TYPE'], row['RESOURCE-NAME'], row['PRINCIPAL'], row['OPERATION'], row['RESOURCE-PATTERN-TYPE'], broker, auth_command)
 
-
     logger.info(f"{len(old_acls)} ACLs to be deleted: \n {old_acls[TABLE_COLUMNS].to_string()}")
 
-    for index, row in old_acls.iterrows():
+    for _, row in old_acls.iterrows():
         action = "delete"
         acl_cmd(action, row['RESOURCE-TYPE'], row['RESOURCE-NAME'], row['PRINCIPAL'], row['OPERATION'], row['RESOURCE-PATTERN-TYPE'], broker, auth_command)
 

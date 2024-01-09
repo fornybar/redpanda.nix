@@ -101,6 +101,7 @@ rebuildableTest {
         };
         acls = {
           user-1 = {
+            userPasswordFile = builtins.toFile "user-1.password" "userPass1";
             acls = [
               {
                 topic = [ "raw" ];
@@ -110,6 +111,7 @@ rebuildableTest {
             ];
           };
           user-2 = {
+            userPasswordFile = builtins.toFile "user-2.password" "userPass2";
             acls = [
               {
                 topic = [ "raw" ];
