@@ -97,6 +97,10 @@ let
 
   aclType = submodule {
     options = {
+      userPassword = mkOption {
+        type = str;
+        description = "Path to user password";
+      };
       acls = mkOption {
         type = listOf aclDefinition;
         default = [ ];
