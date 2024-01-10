@@ -15,6 +15,7 @@ with types;
  *  ```
  *    acls = {
  *      test_user = {
+ *      userPasswordFile = path_to_password
  *        acls = [
  *          {
  *            topic = [ "raw.test" ];
@@ -30,6 +31,10 @@ with types;
  *      };
  *    };
  *  ```
+ *  The example ACL requires the user with username 'test_user' to exist
+ *  If it doesnt exist from previously, then it will be created using the password
+ *  defined in the option userPasswordFile. If this ACL would be deleted, then
+ *  the user is also deleted.
  *
  *  The first ACL gives the principal `test_user` the ability to `read` from
  *  topics **prefixed** with `raw.test`. It grants the principal `test_user` the
