@@ -1,11 +1,11 @@
 { lib, stdenv, fetchzip }:
 stdenv.mkDerivation rec {
   pname = "redpanda-console";
-  version = "2.2.3";
+  version = "2.3.8";
 
   src = fetchzip {
-    url = "https://github.com/redpanda-data/console/releases/download/v${version}/redpanda_console_${version}_linux_64-bit.tar.gz";
-    sha256 = "sha256-ilSQy/8CPh0GpZIAA2w8NPwscNYLfLTdLWIss3f1ET4=";
+    url = "https://github.com/redpanda-data/console/releases/download/v${version}/redpanda_console_${version}_linux_arm64.tar.gz";
+    sha256 = "sha256-5/fDM6yPg99t5sPoWQhIjdwiOOVJNZJOvygNsfCFpb4=";
     stripRoot = false;
   };
 
