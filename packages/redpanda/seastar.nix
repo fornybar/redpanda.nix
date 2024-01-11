@@ -21,7 +21,6 @@
 , python3
 , ragel
 , seastar_version
-, seastar_ref
 , valgrind
 , yaml-cpp
 }:
@@ -32,8 +31,8 @@ llvmPackages.libcxxStdenv.mkDerivation {
   src = fetchFromGitHub {
     owner = "redpanda-data";
     repo = "seastar";
-    rev = seastar_ref;
-    sha256 = "sha256-nGDw9FwasVfHc1RuBH29SR17x5uNS0CbBsDwOdUvH0s=";
+    rev = "v${seastar_version}";
+    sha256 = "sha256-qABmEiDUCpxPETzb4WyIjz5ogcJNX2EaYx0zirB98xc=";
   };
 
   # Breaks exported cmakeConfig include paths

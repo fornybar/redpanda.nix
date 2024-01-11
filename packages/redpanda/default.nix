@@ -27,9 +27,7 @@ let inherit (self) callPackage; in
 {
   redpanda_version = "23.3.1";
   # see redpanda/cmake/dependencies.cmake
-  seastar_version = "23.2.x";
-  # 23.2.x is a branch; in nix we have to pin to a particular commit
-  seastar_ref = "1e2ad26ac57c1130190f3f41237af0907aab17d8";
+  seastar_version = "23.3.x";
 
   redpanda_src = fetchFromGitHub {
     owner = "redpanda-data";

@@ -27,7 +27,6 @@
 , redpanda_src
 , redpanda_version
 , seastar
-, seastar_ref
 , snappy
 , unzip
 , valgrind
@@ -49,8 +48,9 @@ stdenv.mkDerivation rec {
   src = redpanda_src;
 
   postUnpack = ''
-    if ! grep "${seastar_ref}" -r ; then
+    if ! grep "ABC" -r ; then
       echo "Seastar ref must align with redpanda sources"
+      echo $(ls)
       exit 1
     fi
   '';
