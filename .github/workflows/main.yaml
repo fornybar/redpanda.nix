@@ -23,7 +23,7 @@ jobs:
           nixbuild_token: ${{ secrets.NIXBUILD_TOKEN }}
           generate_summary_for: 'workflow'
 
-      - uses: cachix/cachix-action@v13
+      - uses: cachix/cachix-action@v14
         with:
           name: fornybar-open
           authToken: '${{ secrets.CACHIX_FORNYBAR_OPEN }}'
