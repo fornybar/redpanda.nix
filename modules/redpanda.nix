@@ -12,7 +12,7 @@ let
 
   brokerCfg = cfg.broker.settings;
 
-  brokerIp = cfg.broker.ipAdress ? cfg.cluster.
+  brokerIp = cfg.broker.ipAdress ? cfg.cluster.${cfg.nodeName}.ipAdress;
 
   brokerYaml = yaml.generate "redpanda.yaml" brokerCfg;
 
@@ -37,17 +37,6 @@ let
  #   };
  # };
 
-  ipOption = mkOption {
-    type = types.str;
-    description= ''
-      Interface address to bind to for the Kafka API, the RPC API, and the Admin API.
-      Usually, this is the node’s private IP address.
-
-      Is the --self flag in rpk redpanda config bootstrap
-    '';
-    default = "127.0.0.1";
-  };
-
   clusterEntryDefinition = types.submodule {
     options = {
       seed = mkOption {
@@ -55,13 +44,15 @@ let
         default = true;
         description = "Is this broker a seed server in the cluster";
       };
-
-      ipAdress = ipOption;
     };
   };
 
 in
 {
+  imports = [
+    (mkAliasOptionModule [ "services" "redpanda" "cluster" "nodes" "${cfg.nodeName}" "ipAdress" ] [ "services" "redpanda" "broker" "ipAdress" ])
+  ];
+
   options.services.redpanda = with types; {
     enable = mkEnableOption "redpanda";
 
@@ -208,7 +199,16 @@ in
       default = { };
     };
 
-    broker.ipAdress = ipOption;
+    broker.ipAdress = mkOption {
+      type = types.str;
+      description= ''
+        Interface address to bind to for the Kafka API, the RPC API, and the Admin API.
+        Usually, this is the node’s private IP address.
+
+        Is the --self flag in rpk redpanda config bootstrap
+      '';
+      default = "127.0.0.1";
+    };
   };
 
   config = mkIf cfg.enable {
