@@ -12,6 +12,8 @@ let
 
   brokerCfg = cfg.broker.settings;
 
+  brokerIp = cfg.broker.ipAdress ? cfg.cluster.
+
   brokerYaml = yaml.generate "redpanda.yaml" brokerCfg;
 
   clusterYaml = yaml.generate "redpanda-cluster.yaml" cfg.cluster.settings;
@@ -28,9 +30,22 @@ let
   # XXX: this includes internal stuff, no?
   portsToOpen = map (x: x.port) (portCfg ++ listedPortCfg);
 
-  mkAddressOption = address: port: {
-    port = mkOption { type = types.port; default = port; };
-    address = mkOption { type = types.str; default = address; };
+ # addressOption = {
+ #   options = {
+ #     port = mkOption { type = types.port; };
+ #     address = mkOption { type = types.str; };
+ #   };
+ # };
+
+  ipOption = mkOption {
+    type = types.str;
+    description= ''
+      Interface address to bind to for the Kafka API, the RPC API, and the Admin API.
+      Usually, this is the node’s private IP address.
+
+      Is the --self flag in rpk redpanda config bootstrap
+    '';
+    default = "127.0.0.1";
   };
 
   clusterEntryDefinition = types.submodule {
@@ -40,12 +55,8 @@ let
         default = true;
         description = "Is this broker a seed server in the cluster";
       };
-      advertised_rpc_api = mkAddressOption "0.0.0.0" 33145;
-      advertised_kafka_api = mkOption {
-        type = types.listOf (types.submodule {
-          options = mkAddressOption "0.0.0.0" 9092;
-        });
-      };
+
+      ipAdress = ipOption;
     };
   };
 
@@ -74,7 +85,7 @@ in
       type = path;
       description = "Directory of redpanda config";
       # XXX: does this work if it's not `/var/lib/redpanda`? redpanda puts a pid flie at `/var/lib/redpanda/data/pid.lock`, and i'm not sure we can change that.
-      default = "/var/lib/redpanda";
+      default = "/var/lib/redpanda"; # Use default?
     };
 
     openPorts = mkOption {
@@ -125,7 +136,7 @@ in
     autoRestart = mkOption {
       type = bool;
       description = ''
-        Restart local redpanda process if 
+        Restart local redpanda process if
         1. the redpanda config, binary, etc change
         2. the cluster config needs a restart
 
@@ -155,7 +166,7 @@ in
           address.
           '';
         default = { };
-        example = ''
+        example = '' #UPDATE
           {
             alpha = {
               rpc_api.address = "0.0.0.0";
@@ -196,6 +207,8 @@ in
       '';
       default = { };
     };
+
+    broker.ipAdress = ipOption;
   };
 
   config = mkIf cfg.enable {
@@ -212,32 +225,26 @@ in
       { redpanda = (removeAttrs (cfg.cluster.nodes.${cfg.nodeName} or { }) [ "seed" ]); }
       {
         # TODO: should we import ${redpanda.src}/conf/redpanda.yaml instead of reproducing that information here?
+        # >>> Defautl to rpk redpanda config bootstrap
         redpanda = {
-          data_directory = mkDefault "${cfg.configDir}/data";
-          rpc_server = { address = mkDefault "127.0.0.1"; port = mkDefault 33145; };
-          advertised_rpc_api = {
-            address = mkDefault "0.0.0.0";
-            port = mkDefault cfg.broker.settings.redpanda.rpc_server.port;
-          };
+          data_directory = mkDefault "/var/lib/redpanda/data"; # Not the same as config?
+          rpc_server = mkDefault { address = mkDefault cfg.broker.ipAdress; port = mkDefault 33145; };
           kafka_api = mkDefault [
-            { address = "0.0.0.0"; port = 9092; }
-          ];
-          advertised_kafka_api = mkDefault [
-            { address = "0.0.0.0"; port = 9092; }
+            { address = mkDefault cfg.broker.ipAdress; port = 9092; }
           ];
           admin = mkDefault [
-            { address = "127.0.0.1"; port = 9644; }
+            { address = mkDefault cfg.broker.ipAdress; port = 9644; }
           ];
-          developer_mode = mkDefault false;
+          developer_mode = mkDefault false; # Dev /PROD
           empty_seed_starts_cluster = mkDefault (cfg.cluster.nodes == { });
           seed_servers = mkDefault
             (mapAttrsToList
-              (_: node: { host = node.advertised_rpc_api; })
+              (_: node: { host = node.rpc_server; })
               (filterAttrs (_: v: v.seed) cfg.cluster.nodes));
         };
         rpk = {
           coredump_dir = mkDefault "${cfg.configDir}/coredump";
-          overprovisioned = mkDefault false; # Set true for dev mode
+          overprovisioned = mkDefault false; # Set true for dev mode # defualt to dev mode + make prod option
         };
         pandaproxy.pandaproxy_api = mkDefault [
           { address = "0.0.0.0"; port = 8082; }
