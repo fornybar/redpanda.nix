@@ -87,9 +87,9 @@ let
         server0.wait_for_unit("redpanda.service")
         server1.wait_for_unit("redpanda.service")
         server2.wait_for_unit("redpanda.service")
-        server0.wait_until_succeeds("rpk cluster health --exit-when-healthy", timeout=100)
-        server1.wait_until_succeeds("rpk cluster health --exit-when-healthy", timeout=100)
-        server2.wait_until_succeeds("rpk cluster health --exit-when-healthy", timeout=100)
+        server0.wait_until_succeeds("rpk cluster health --exit-when-healthy --watch", timeout=100)
+        server1.wait_until_succeeds("rpk cluster health --exit-when-healthy --watch", timeout=100)
+        server2.wait_until_succeeds("rpk cluster health --exit-when-healthy --watch", timeout=100)
         client.succeed("rpk topic create hei --brokers 'server0:9092'", timeout=20)
         client.succeed("echo 'foo' | rpk topic produce hei --brokers 'server1:9092'", timeout=20)
         client.succeed("rpk topic consume hei -n 1 --brokers 'server2:9092'", timeout=20)
@@ -120,7 +120,7 @@ let
           # sanity check redpanda-config succeeded
           s.wait_for_unit("redpanda-config.service")
           # cluster back to healthy
-          s.wait_until_succeeds("rpk cluster health --exit-when-healthy", timeout=100);
+          s.wait_until_succeeds("rpk cluster health --exit-when-healthy --watch", timeout=100);
     '';
   };
 in

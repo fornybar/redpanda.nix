@@ -153,7 +153,7 @@ rebuildableTest {
 
     with subtest("Simple produce/consume test"):
       server.wait_for_unit("redpanda.service")
-      server.wait_until_succeeds("rpk cluster health --exit-when-healthy", timeout=100)
+      server.wait_until_succeeds("rpk cluster health --exit-when-healthy --watch", timeout=100)
       server.succeed("rpk topic create hei", timeout=100)
       client.succeed("python ${./produce.py} 1>&2", timeout=100)
 
@@ -162,7 +162,7 @@ rebuildableTest {
 
     with subtest("Test authentication enabled"):
       authserver.wait_for_unit("redpanda-acl.service")
-      authserver.wait_until_succeeds("rpk cluster health --exit-when-healthy", timeout=100)
+      authserver.wait_until_succeeds("rpk cluster health --exit-when-healthy --watch", timeout=100)
       client.succeed("python ${./auth.py} 1>&2", timeout=100)
 
     with subtest("Test ACL creation"):
