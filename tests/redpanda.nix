@@ -145,24 +145,31 @@ rebuildableTest {
     };
   };
 
+  # "reserve" 15GiB early by allocating it here. The key is to do it in small
+  # increments so nixbuild.net detects the lack of memory. Big increments go
+  # unnoticed by the OOM logic. This is exactly what happens with prodserver
+  # below. It requests too much memory at once, and nixbuild.net doesn't
+  # restart the build as expected.
   testScript = ''
+    x = []
+    for _ in range(1024**2):        # 1 MiB
+      x.append(bytearray(1024*15))  #       * 15 kiB = 15 GiB
+    x = []
 
     print("--> Starting testScript")
     server.start()
     client.start()
+    authserver.start()
 
     with subtest("Simple produce/consume test"):
       server.wait_for_unit("redpanda.service")
-      server.wait_until_succeeds("rpk cluster health --exit-when-healthy", timeout=100)
+      server.wait_until_succeeds("rpk cluster health --exit-when-healthy --watch", timeout=100)
       server.succeed("rpk topic create hei", timeout=100)
       client.succeed("python ${./produce.py} 1>&2", timeout=100)
 
-    server.shutdown()
-    authserver.start()
-
     with subtest("Test authentication enabled"):
       authserver.wait_for_unit("redpanda-acl.service")
-      authserver.wait_until_succeeds("rpk cluster health --exit-when-healthy", timeout=100)
+      authserver.wait_until_succeeds("rpk cluster health --exit-when-healthy --watch", timeout=100)
       client.succeed("python ${./auth.py} 1>&2", timeout=100)
 
     with subtest("Test ACL creation"):
@@ -172,9 +179,12 @@ rebuildableTest {
       assert "User:user-1" in aclLog, "No ACLs created for user-1"
       assert "User:user-2" in aclLog, "No ACLs created for user-2"
 
+    # Shutdown everything to reclaim memory for prodserver
+    server.shutdown()
     authserver.shutdown()
+    client.shutdown()
 
-    prodserver.start() # May complain about having too little memory, so we run it alone
+    prodserver.start()
     with subtest("Production mode setup test"):
       prodserver.wait_for_unit("redpanda-setup.service")
   '';

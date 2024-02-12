@@ -309,7 +309,7 @@ in
         # 1. try to apply new cluster config (this saves a restart later)
         # 2. restart it after applying config changes
         if systemctl status redpanda.service; then
-          ${rpkCmd} cluster health --exit-when-healthy
+          ${rpkCmd} cluster health --exit-when-healthy --watch
           ${rpkCmd} cluster config import -f ${clusterYaml} \
             || true # best attempt
 
@@ -324,18 +324,16 @@ in
               # wait until we can enter maintenance mode (or timeout)
               # TODO: check that this is failing because another node is in maintenance mode
               tryMaintenanceMode() {
-                ${rpkCmd} cluster health --exit-when-healthy
+                ${rpkCmd} cluster health --exit-when-healthy --watch
                 ${rpkCmd} cluster maintenance enable $node_id --wait
               }
               while ! tryMaintenanceMode; do
                 echo "another node is in maintenance mode. waiting..."
                 sleep 10
               done
-              ${rpkCmd} cluster health --exit-when-healthy
+              ${rpkCmd} cluster health --exit-when-healthy --watch
               systemctl restart redpanda.service
-              # TODO: Wait for the node to actually join the cluster
-              sleep 2
-              ${rpkCmd} cluster health --exit-when-healthy
+              ${rpkCmd} cluster health --exit-when-healthy --watch
               ${rpkCmd} cluster maintenance disable $node_id
               echo "Finished redpanda restart (node id $node_id)"
           ''}
@@ -369,7 +367,7 @@ in
         set -euo pipefail
 
         tryImportClusterConfig() {
-          ${rpkCmd} cluster health --exit-when-healthy
+          ${rpkCmd} cluster health --exit-when-healthy --watch
           ${rpkCmd} cluster config import -f ${clusterYaml} 2>&1
         }
         while ! out=$(tryImportClusterConfig); do
@@ -412,9 +410,9 @@ in
                 echo "another node is in maintenance mode. waiting..."
                 sleep 10
               done
-              ${rpkCmd} cluster health --exit-when-healthy
+              ${rpkCmd} cluster health --exit-when-healthy --watch
               systemctl restart redpanda.service
-              ${rpkCmd} cluster health --exit-when-healthy
+              ${rpkCmd} cluster health --exit-when-healthy --watch
               ${rpkCmd} cluster maintenance disable $node_id
             fi
           ''}
