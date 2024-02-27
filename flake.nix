@@ -31,7 +31,19 @@
 
       nixosModules = import ./modules;
 
-      packages.${system} = pkgs.callPackages ./packages { };
+      packages.${system} = {
+        # Build from source
+        inherit (pkgs)
+          redpanda-server
+          redpanda-client;
+
+        # Redpanda offical builds
+        inherit (pkgs)
+          redpanda-console-bin
+          redpanda-bin
+          redpanda-server-bin
+          redpanda-client-bin;
+      };
 
       checks.${system} = pkgs.lib.lists.foldl' pkgs.lib.attrsets.unionOfDisjoint { } [
         nixosTests
