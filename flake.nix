@@ -13,7 +13,9 @@
     let
       system = "x86_64-linux";
       pkgs = import nixpkgs {
-        inherit system; config.allowUnfree = true;
+        inherit system;
+        config.allowUnfree = true;
+        overlays = [ self.overlays.default ];
       };
       nixosTests = {
         redpanda = import ./tests/redpanda.nix { inherit pkgs self; };
@@ -25,7 +27,7 @@
       };
     in
     {
-      overlays.redpanda = import ./packages/overlay.nix;
+      overlays.default = import ./packages/overlay.nix;
 
       nixosModules = {
         redpanda = { pkgs, lib, ... }: {
