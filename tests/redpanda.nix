@@ -1,7 +1,12 @@
-{ pkgs, self }:
+{ pkgs, self, redpanda-server, redpanda-client }:
 let
   python = pkgs.python310.withPackages (ps: with ps; [ requests aiokafka ]);
   rebuildableTest = import ./rebuildableTest.nix pkgs;
+
+  packages = {
+    server = redpanda-server;
+    client = redpanda-client;
+  };
 in
 rebuildableTest {
   name = "test-redpanda";
@@ -12,6 +17,7 @@ rebuildableTest {
       virtualisation.memorySize = 2 * 1024; # 2GiB
       services.redpanda = {
         enable = true;
+        inherit packages;
         broker.settings = {
           redpanda = {
             developer_mode = true;
@@ -29,6 +35,7 @@ rebuildableTest {
       virtualisation.memorySize = 5 * 1024; # 5GiB
       services.redpanda = {
         enable = true;
+        inherit packages;
         # I don't think there's a way to test this since
         # - not specifying `file` makes it take a really long time
         # - specifying `file` is dependent on each person's computer
@@ -62,6 +69,7 @@ rebuildableTest {
 
       services.redpanda = {
         enable = true;
+        inherit packages;
         admin.password = builtins.toFile "admin.password" "admin";
         broker.settings = {
           redpanda = {
