@@ -29,20 +29,7 @@
     {
       overlays.default = import ./packages/overlay.nix;
 
-      nixosModules = {
-        redpanda = { pkgs, lib, ... }: {
-          imports = [ ./modules/redpanda.nix ];
-          # FIXME: once we have a functional redpanda-server in nixpkgs, this can be removed
-          services.redpanda.packages.server = lib.mkDefault (pkgs.callPackages ./packages { }).redpanda-server;
-          services.redpanda.packages.client = lib.mkDefault (pkgs.callPackages ./packages { }).redpanda-client;
-        };
-        redpanda-console = { pkgs, lib, ... }: {
-          imports = [ ./modules/redpanda-console.nix ];
-          # FIXME: once we have a redpanda-console in nixpkgs, this can be removed
-          services.redpanda-console.package = lib.mkDefault (pkgs.callPackages ./packages { }).redpanda-console-bin;
-        };
-        redpanda-acl = import ./modules/redpanda-acl.nix;
-      };
+      nixosModules = import ./modules;
 
       packages.${system} = pkgs.callPackages ./packages { };
 
