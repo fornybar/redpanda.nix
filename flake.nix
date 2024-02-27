@@ -19,7 +19,17 @@
       };
       nixosTests = {
         redpanda = import ./tests/redpanda.nix { inherit pkgs self; };
-        cluster = import ./tests/cluster.nix { inherit pkgs self; };
+        redpanda-bin = import ./tests/redpanda.nix { inherit pkgs self; bin = true; };
+        cluster = import ./tests/cluster.nix {
+          inherit pkgs self;
+          redpanda-server = pkgs.redpanda-server;
+          redpanda-client = pkgs.redpanda-client;
+        };
+        cluster-bin = import ./tests/cluster.nix {
+          inherit pkgs self;
+          redpanda-server = pkgs.redpanda-server-bin;
+          redpanda-client = pkgs.redpanda-client-bin;
+        };
       };
       pre-commit-check = pre-commit-hooks.lib.${system}.run {
         src = ./.;
