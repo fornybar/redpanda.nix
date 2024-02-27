@@ -3,7 +3,7 @@ let
   python = pkgs.python310.withPackages (ps: with ps; [ requests aiokafka ]);
   rebuildableTest = import ./rebuildableTest.nix pkgs;
 in
-rebuildableTest {
+rebuildableTest rec {
   name = "test-redpanda";
   nodes = {
     server = {
@@ -67,9 +67,9 @@ rebuildableTest {
           redpanda = {
             developer_mode = true;
             empty_seed_starts_cluster = true;
-            kafka_api = [
-              { address = "0.0.0.0"; port = 9092; authentication_method = "sasl"; }
-            ];
+            #kafka_api = [
+            #  { address = "0.0.0.0"; port = 9092; authentication_method = "sasl"; }
+            #];
             advertised_kafka_api = [
               # Required for being accessible from client
               { address = "authserver"; port = 9092; }
@@ -95,7 +95,7 @@ rebuildableTest {
       services.redpanda-acl = {
         enable = true;
         kafka = {
-          bootstrapServer = "0.0.0.0:9092";
+          bootstrapServer = "127.0.0.1:9092";
           username = "admin";
           password = builtins.toFile "admin.password" "admin";
         };
