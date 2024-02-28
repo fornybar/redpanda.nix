@@ -17,28 +17,9 @@
         config.allowUnfree = true;
         overlays = [ self.overlays.default ];
       };
-      nixosTests = {
-        nixos-test-redpanda = import ./tests/redpanda.nix {
-          inherit pkgs self;
-          redpanda-server = pkgs.redpanda-server;
-          redpanda-client = pkgs.redpanda-client;
-        };
-        nixos-test-redpanda-bin = import ./tests/redpanda.nix {
-          inherit pkgs self;
-          redpanda-server = pkgs.redpanda-server-bin;
-          redpanda-client = pkgs.redpanda-client-bin;
-        };
-        nixos-test-cluster = import ./tests/cluster.nix {
-          inherit pkgs self;
-          redpanda-server = pkgs.redpanda-server;
-          redpanda-client = pkgs.redpanda-client;
-        };
-        nixos-test-cluster-bin = import ./tests/cluster.nix {
-          inherit pkgs self;
-          redpanda-server = pkgs.redpanda-server-bin;
-          redpanda-client = pkgs.redpanda-client-bin;
-        };
-      };
+
+      nixosTests = import ./tests { inherit self pkgs; };
+
       pre-commit-check = pre-commit-hooks.lib.${system}.run {
         src = ./.;
         hooks.nixpkgs-fmt.enable = true;
