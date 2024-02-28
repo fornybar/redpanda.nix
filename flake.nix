@@ -18,22 +18,22 @@
         overlays = [ self.overlays.default ];
       };
       nixosTests = {
-        redpanda = import ./tests/redpanda.nix {
+        nixos-test-redpanda = import ./tests/redpanda.nix {
           inherit pkgs self;
           redpanda-server = pkgs.redpanda-server;
           redpanda-client = pkgs.redpanda-client;
         };
-        redpanda-bin = import ./tests/redpanda.nix {
+        nixos-test-redpanda-bin = import ./tests/redpanda.nix {
           inherit pkgs self;
           redpanda-server = pkgs.redpanda-server-bin;
           redpanda-client = pkgs.redpanda-client-bin;
         };
-        cluster = import ./tests/cluster.nix {
+        nixos-test-cluster = import ./tests/cluster.nix {
           inherit pkgs self;
           redpanda-server = pkgs.redpanda-server;
           redpanda-client = pkgs.redpanda-client;
         };
-        cluster-bin = import ./tests/cluster.nix {
+        nixos-test-cluster-bin = import ./tests/cluster.nix {
           inherit pkgs self;
           redpanda-server = pkgs.redpanda-server-bin;
           redpanda-client = pkgs.redpanda-client-bin;
