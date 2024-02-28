@@ -13,36 +13,36 @@
     let
       system = "x86_64-linux";
       pkgs = import nixpkgs {
-        inherit system; config.allowUnfree = true;
+        inherit system;
+        config.allowUnfree = true;
+        overlays = [ self.overlays.default ];
       };
-      nixosTests = {
-        redpanda = import ./tests/redpanda.nix { inherit pkgs self; };
-        cluster = import ./tests/cluster.nix { inherit pkgs self; };
-      };
+
+      nixosTests = import ./tests { inherit self pkgs; };
+
       pre-commit-check = pre-commit-hooks.lib.${system}.run {
         src = ./.;
         hooks.nixpkgs-fmt.enable = true;
       };
     in
     {
-      overlays.redpanda = import ./packages/overlay.nix;
+      overlays.default = import ./packages/overlay.nix;
 
-      nixosModules = {
-        redpanda = { pkgs, lib, ... }: {
-          imports = [ ./modules/redpanda.nix ];
-          # FIXME: once we have a functional redpanda-server in nixpkgs, this can be removed
-          services.redpanda.packages.server = lib.mkDefault (pkgs.callPackages ./packages { }).redpanda-server;
-          services.redpanda.packages.client = lib.mkDefault (pkgs.callPackages ./packages { }).redpanda-client;
-        };
-        redpanda-console = { pkgs, lib, ... }: {
-          imports = [ ./modules/redpanda-console.nix ];
-          # FIXME: once we have a redpanda-console in nixpkgs, this can be removed
-          services.redpanda-console.package = lib.mkDefault (pkgs.callPackages ./packages { }).redpanda-console-bin;
-        };
-        redpanda-acl = import ./modules/redpanda-acl.nix;
+      nixosModules = import ./modules;
+
+      packages.${system} = {
+        # Build from source
+        inherit (pkgs)
+          redpanda-server
+          redpanda-client;
+
+        # Redpanda offical builds
+        inherit (pkgs)
+          redpanda-console-bin
+          redpanda-bin
+          redpanda-server-bin
+          redpanda-client-bin;
       };
-
-      packages.${system} = pkgs.callPackages ./packages { };
 
       checks.${system} = pkgs.lib.lists.foldl' pkgs.lib.attrsets.unionOfDisjoint { } [
         nixosTests

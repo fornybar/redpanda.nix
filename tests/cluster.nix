@@ -1,4 +1,4 @@
-{ pkgs, self }:
+{ pkgs, self, redpanda-server, redpanda-client }:
 let
   rebuildableTest = import ./rebuildableTest.nix pkgs;
 
@@ -13,6 +13,10 @@ let
 
     services.redpanda = {
       enable = true;
+      packages = {
+        server = redpanda-server;
+        client = redpanda-client;
+      };
       autoRestart = true;
       cluster.nodes = {
         server0 = {

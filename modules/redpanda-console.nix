@@ -17,8 +17,8 @@ in
     package = mkOption {
       type = package;
       # FIXME: doesn't actually exist. no default for now
-      # default = pkgs.redpanda-console;
-      defaultText = literalExpression "pkgs.redpanda-console";
+      default = pkgs.redpanda-console-bin;
+      defaultText = literalExpression "pkgs.redpanda-console-bin";
       description = "Which Redpanda console package to use";
     };
 
