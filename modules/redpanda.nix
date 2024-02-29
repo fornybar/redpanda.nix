@@ -216,14 +216,14 @@ in
           data_directory = mkDefault "${cfg.configDir}/data";
           rpc_server = { address = mkDefault "127.0.0.1"; port = mkDefault 33145; };
           advertised_rpc_api = {
-            address = mkDefault "0.0.0.0";
+            address = mkDefault "127.0.0.1";
             port = mkDefault cfg.broker.settings.redpanda.rpc_server.port;
           };
           kafka_api = mkDefault [
             { address = "0.0.0.0"; port = 9092; }
           ];
           advertised_kafka_api = mkDefault [
-            { address = "0.0.0.0"; port = 9092; }
+            { address = "127.0.0.1"; port = 9092; }
           ];
           admin = mkDefault [
             { address = "127.0.0.1"; port = 9644; }
