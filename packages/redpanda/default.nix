@@ -25,17 +25,17 @@
 lib.makeScope newScope (self:
 let inherit (self) callPackage; in
 {
-  redpanda_version = "23.2.17";
+  redpanda_version = "23.3.6";
   # see redpanda/cmake/dependencies.cmake
-  seastar_version = "23.2.x";
+  seastar_version = "23.3.x";
   # 23.2.x is a branch; in nix we have to pin to a particular commit
-  seastar_ref = "1e2ad26ac57c1130190f3f41237af0907aab17d8";
+  seastar_ref = "1847312206de478ce76773b5122ea5fd163a660a";
 
   redpanda_src = fetchFromGitHub {
     owner = "redpanda-data";
     repo = "redpanda";
     rev = "v${self.redpanda_version}";
-    hash = "sha256-oyPqXdnoh2i6EDa0IPowgXBlOk7mG8JYkXeb4XAxbm8=";
+    hash = "sha256-8VkMVbiwQDsYGour9fn0qYXXS/kWnhtARNaGmXVyaIY=";
   };
 
   redpanda-client = callPackage ./redpanda.nix { };

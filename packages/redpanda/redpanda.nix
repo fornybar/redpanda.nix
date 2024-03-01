@@ -17,7 +17,7 @@ buildGoModule rec {
   version = redpanda_version;
   modRoot = "./src/go/rpk";
   runVend = false;
-  vendorHash = "sha256-mLMMw48d1FOvIIjDNza0rZSWP55lP1AItR/hT3lYXDg=";
+  vendorHash = "";
 
   ldflags = [
     ''-X "github.com/redpanda-data/redpanda/src/go/rpk/pkg/cli/cmd/version.version=${version}"''
