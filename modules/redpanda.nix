@@ -29,6 +29,7 @@ let
   portsToOpen = map (x: x.port) (portCfg ++ listedPortCfg);
 
   mkAddressOption = address: port: {
+    name = mkOption { type = types.str; default = ""; };
     port = mkOption { type = types.port; default = port; };
     address = mkOption { type = types.str; default = address; };
   };
@@ -125,7 +126,7 @@ in
     autoRestart = mkOption {
       type = bool;
       description = ''
-        Restart local redpanda process if 
+        Restart local redpanda process if
         1. the redpanda config, binary, etc change
         2. the cluster config needs a restart
 
