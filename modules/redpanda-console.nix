@@ -77,8 +77,9 @@ in
     ];
 
     services.redpanda-console.settings = {
-      kafka.brokers = lib.mkDefault (concatStringsSep ","
-        (map (x: x.address + ":" + toString x.port) cfg.kafkaBrokers));
+      kafka.brokers = lib.mkDefault (
+        (map (x: x.address + ":" + toString x.port) cfg.kafkaBrokers)
+      );
       server.listenPort = lib.mkDefault cfg.port;
     };
 
