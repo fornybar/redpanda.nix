@@ -33,7 +33,7 @@ llvmPackages.libcxxStdenv.mkDerivation {
     owner = "redpanda-data";
     repo = "seastar";
     rev = seastar_ref;
-    sha256 = "sha256-nGDw9FwasVfHc1RuBH29SR17x5uNS0CbBsDwOdUvH0s=";
+    sha256 = "sha256-PoLkfdw/qejkkgRpiefjEvGc7H1g0HMWOHEsZw2Ydlw=";
   };
 
   # Breaks exported cmakeConfig include paths
